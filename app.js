@@ -1,6 +1,10 @@
 /* Cycling Cities — application logic.
-   Content lives in data.js, interface strings in i18n.js.
-   Every map record here is research-in-progress: see the rights badge on each site. */
+   Research content is loaded from ./data/*.json (see build-plan-ai.md §4).
+   Interface strings live in i18n.js.
+
+   Records carry placeholder:true when the research team has not confirmed them.
+   Those records must never be presented as fact: the map draws them hollow, the
+   record card carries a warning, and the citation button refuses to copy them. */
 
 const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
@@ -8,10 +12,10 @@ const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 const params = new URLSearchParams(location.search);
 const state = {
   lang: LANGS.some(l => l.id === params.get('lang')) ? params.get('lang') : 'en',
-  city: CITIES[params.get('city')] ? params.get('city') : 'mpls',
-  di: Math.max(0, DECADES.indexOf(Number(params.get('d')))),
-  sel: null,            // { c: cityId, i: siteIndex }
-  active: new Set(FACTORS.map(f => f.id)),
+  city: 'mpls',
+  di: 0,
+  sel: null,          // site id
+  active: new Set(),
   compare: false,
   global: false,
   histOn: false,
@@ -21,29 +25,74 @@ const state = {
   playing: false
 };
 
+/* filled by loadData() */
+let DECADES = [], ERAS = {}, FACTORS = [], SPLIT_C = [], CITIES = {}, NETWORK = [], STORIES = [];
+let SITES = [], SPLIT = [], META = {};
+
 const T = () => UI[state.lang];
 const tr = obj => (obj && (obj[state.lang] || obj.en)) || '';
 const decade = () => DECADES[state.di];
 const fc = id => FACTORS.find(f => f.id === id);
 const cityName = id => tr(CITIES[id].name);
+const sitesOf = city => SITES.filter(s => s.city === city);
+const siteById = id => SITES.find(s => s.id === id);
+const splitFor = (city, d) => SPLIT.find(r => r.city === city && r.decade === d);
+const verifiedCount = () => SITES.filter(s => !s.placeholder).length;
+
+let map = null, currentBase = null, pins = null, network = null, histLayer = null, playTimer = null;
+const BASES = {};
+
+/* ---------- data ---------- */
+async function loadJSON(url) {
+  const res = await fetch(url, { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`${url} → HTTP ${res.status}`);
+  return res.json();
+}
+async function loadData() {
+  const [ref, sites, split] = await Promise.all([
+    loadJSON('./data/reference.json'),
+    loadJSON('./data/sites.json'),
+    loadJSON('./data/modalsplit.json')
+  ]);
+  DECADES = ref.decades; ERAS = ref.eras; FACTORS = ref.factors; SPLIT_C = ref.splitColours;
+  CITIES = ref.cities; NETWORK = ref.networkCities; STORIES = ref.stories;
+  SITES = sites.sites; SPLIT = split.records;
+  META = { sites: sites.meta, split: split.meta };
+
+  state.active = new Set(FACTORS.map(f => f.id));
+  if (CITIES[params.get('city')]) state.city = params.get('city');
+  const d = DECADES.indexOf(Number(params.get('d')));
+  if (d > -1) state.di = d;
+}
+function showLoadError(err) {
+  const t = T();
+  const box = $('#loadError');
+  box.innerHTML = `<div class="load-box">
+    <b>${t.loadError}</b>
+    <p>${t.loadErrorHint}</p>
+    <code>${String(err && err.message || err)}</code>
+    <button type="button" id="retryLoad">${t.retry}</button></div>`;
+  box.classList.add('on');
+  $('#retryLoad').onclick = () => location.reload();
+}
 
 /* ---------- map ---------- */
-const map = L.map('map', { zoomControl: false, minZoom: 2, worldCopyJump: true })
-  .setView(CITIES.mpls.center, CITIES.mpls.zoom);
-map.createPane('hist');
-map.getPane('hist').style.zIndex = 350;
-
 const ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
-const BASES = {
-  light:   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',            { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }),
-  plain:   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',       { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }),
-  voyager: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',  { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' })
-};
-let currentBase = BASES.light.addTo(map);
-const pins = L.layerGroup().addTo(map);
-const network = L.layerGroup().addTo(map);
-let histLayer = null;
-let playTimer = null;
+function initMap() {
+  map = L.map('map', { zoomControl: false, minZoom: 2, worldCopyJump: true })
+    .setView(CITIES[state.city].center, CITIES[state.city].zoom);
+  map.createPane('hist');
+  map.getPane('hist').style.zIndex = 350;
+  Object.assign(BASES, {
+    light:   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',           { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }),
+    plain:   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',      { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }),
+    voyager: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' })
+  });
+  currentBase = BASES.light.addTo(map);
+  pins = L.layerGroup().addTo(map);
+  network = L.layerGroup().addTo(map);
+  map.on('move zoom moveend zoomend resize viewreset', updateClip);
+}
 
 /* ---------- PMTiles raster layer ---------- */
 function pmtilesLayer(url, opts) {
@@ -125,9 +174,7 @@ function updateClip() {
   const x = nw.x + size.x * state.splitPct;
   c.style.clip = 'rect(' + [nw.y, x, se.y, nw.x].join('px,') + 'px)';
 }
-map.on('move zoom moveend zoomend resize viewreset', updateClip);
-
-(function dividerDrag() {
+function bindDividerDrag() {
   const d = $('#divider');
   let dragging = false;
   const set = e => {
@@ -140,15 +187,17 @@ map.on('move zoom moveend zoomend resize viewreset', updateClip);
   const end = e => { if (dragging) { dragging = false; map.dragging.enable(); try { d.releasePointerCapture(e.pointerId); } catch (err) {} } };
   d.addEventListener('pointerup', end);
   d.addEventListener('pointercancel', end);
-})();
+}
 
 /* ---------- render ---------- */
-const visibleCities = () => state.global ? [] : state.compare ? ['mpls', 'rdam'] : [state.city];
+const visibleCities = () => state.global ? [] : state.compare ? Object.keys(CITIES) : [state.city];
+const shownSites = () => visibleCities().flatMap(sitesOf)
+  .filter(s => state.active.has(s.factor) && s.decade <= decade());
 
 function renderTicks() {
   $('#yearTicks').innerHTML = DECADES.map((y, i) =>
-    (i % 3 === 0 || i === DECADES.length - 1) ? `<span data-i="${i}">${y}</span>` : `<span data-i="${i}">·</span>`).join('');
-  $$('#yearTicks span').forEach(s => s.onclick = () => { state.di = +s.dataset.i; $('#yearRange').value = state.di; state.sel = null; render(); });
+    (i % 3 === 0 || i === DECADES.length - 1) ? `<span data-i="${i}">${y}</span>` : `<span data-i="${i}" class="dot">·</span>`).join('');
+  $$('#yearTicks span').forEach(s => s.onclick = () => setDecade(+s.dataset.i));
 }
 function renderYear() {
   const y = decade();
@@ -157,19 +206,19 @@ function renderYear() {
   $$('#yearTicks span').forEach(s => s.classList.toggle('on', +s.dataset.i <= state.di));
 }
 function renderFactors() {
-  const counted = visibleCities().length ? visibleCities() : Object.keys(CITIES);
+  const cities = visibleCities().length ? visibleCities() : Object.keys(CITIES);
   $('#factors').innerHTML = FACTORS.map(f => {
-    const n = counted.reduce((sum, c) => sum + CITIES[c].sites.filter(s => s.f === f.id && s.d <= decade()).length, 0);
+    const list = cities.flatMap(sitesOf).filter(s => s.factor === f.id && s.decade <= decade());
+    const ok = list.filter(s => !s.placeholder).length;
     const nm = state.lang === 'en' ? tr(f.label) : `${tr(f.label)}<span class="en">${f.label.en}</span>`;
     return `<button class="factor" data-f="${f.id}" aria-pressed="${state.active.has(f.id)}" title="${tr(f.sub)}">
       <span class="bar" style="background:${f.c}"></span>
       <span class="nm">${nm}</span>
-      <span class="ct">${n}</span></button>`;
+      <span class="ct">${ok ? `<b>${ok}</b>/` : ''}${list.length}</span></button>`;
   }).join('');
   $$('#factors .factor').forEach(b => b.onclick = () => {
     const f = b.dataset.f;
     state.active.has(f) ? state.active.delete(f) : state.active.add(f);
-    state.sel = null;
     render();
   });
   $('#allFactors').textContent = state.active.size === FACTORS.length ? T().hideAll : T().showAll;
@@ -179,7 +228,7 @@ function renderPins() {
   network.clearLayers();
 
   if (state.global) {
-    NETWORK_CITIES.forEach(c => {
+    NETWORK.forEach(c => {
       L.marker(c.ll, { icon: L.divIcon({ className: `network-marker${c.primary ? ' primary' : ''}`, html: '<span></span>', iconSize: [11, 11], iconAnchor: [5, 5] }) })
         .bindTooltip(tr(c.name), { direction: 'top', offset: [0, -6] })
         .addTo(network);
@@ -187,77 +236,101 @@ function renderPins() {
     return;
   }
 
-  visibleCities().forEach(c => {
-    CITIES[c].sites.forEach((s, i) => {
-      if (!state.active.has(s.f) || s.d > decade()) return;
-      const isNow = s.d === decade();
-      const col = fc(s.f).c;
-      const chosen = state.sel && state.sel.c === c && state.sel.i === i;
-      if (chosen) L.circleMarker(s.ll, { radius: 14, color: col, weight: 1, fill: false, dashArray: '2,3' }).addTo(pins);
-      const m = L.circleMarker(s.ll, { radius: isNow ? 8 : 5, color: '#F1EFE9', weight: isNow ? 2 : 1,
-        fillColor: col, fillOpacity: isNow ? .95 : .4 }).addTo(pins);
-      m.bindTooltip(`${s.d}s · ${tr(s.t)}`, { direction: 'top', offset: [0, -8] });
-      m.on('click', () => { state.sel = { c, i }; renderRecord(); renderPins(); });
-    });
+  shownSites().forEach(s => {
+    const isNow = s.decade === decade();
+    const col = fc(s.factor).c;
+    const chosen = state.sel === s.id;
+    if (chosen) L.circleMarker(s.coordinates, { radius: 15, color: col, weight: 1, fill: false, dashArray: '2,3' }).addTo(pins);
+    /* placeholder records are drawn hollow with a dashed edge so an unconfirmed
+       point can never be mistaken for a verified one */
+    const style = s.placeholder
+      ? { radius: isNow ? 8 : 5, color: col, weight: isNow ? 2 : 1.2, dashArray: '2,2',
+          fillColor: '#F1EFE9', fillOpacity: isNow ? .55 : .25 }
+      : { radius: isNow ? 8 : 5, color: '#F1EFE9', weight: isNow ? 2 : 1,
+          fillColor: col, fillOpacity: isNow ? .95 : .45 };
+    const m = L.circleMarker(s.coordinates, style).addTo(pins);
+    m.bindTooltip(`${s.decade}s · ${tr(s.title)}${s.placeholder ? ' · ' + T().placeholderFlag : ''}`,
+      { direction: 'top', offset: [0, -8] });
+    m.on('click', () => selectSite(s.id));
+    /* a wider transparent disc keeps the point tappable on a touch screen */
+    L.circleMarker(s.coordinates, { radius: 17, stroke: false, fillColor: col, fillOpacity: .01 })
+      .on('click', () => selectSite(s.id)).addTo(pins);
   });
 }
 function recordMedia(s) {
-  const t = T();
-  if (s.img && s.img.commons) {
-    const src = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(s.img.commons)}?width=900`;
-    return `<img class="rec-img" src="${src}" alt="${tr(s.t)}" loading="lazy">`
-      + `<div class="rec-cap">${s.img.credit} · <a href="${s.img.link}" target="_blank" rel="noopener">${t.viewSource}</a></div>`;
+  const t = T(), img = s.image;
+  if (img && img.commons) {
+    const src = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(img.commons)}?width=900`;
+    return `<img class="rec-img" src="${src}" alt="${tr(s.title)}" loading="lazy">`
+      + `<div class="rec-cap">${img.credit} · <a href="${img.link}" target="_blank" rel="noopener">${t.viewSource}</a></div>`;
   }
-  if (s.img && s.img.link) {
+  if (img && img.link) {
     return `<div class="rec-slot"><span>${t.offsite}</span>`
-      + `<a href="${s.img.link}" target="_blank" rel="noopener">${t.viewSource}</a></div>`
-      + `<div class="rec-cap">${s.img.credit}</div>`;
+      + `<a href="${img.link}" target="_blank" rel="noopener">${t.viewSource}</a></div>`
+      + `<div class="rec-cap">${img.credit}</div>`;
   }
   return `<div class="rec-plate"><span>${t.plate}</span></div>`;
 }
-function recordId(c, i) {
-  const s = CITIES[c].sites[i];
-  return `${c.toUpperCase()}-${s.f.toUpperCase()}-${String(i + 1).padStart(3, '0')}`;
+function rightsBadge(s) {
+  const t = T(), img = s.image;
+  if (!img) return `<div class="rights-badge pending"><i></i>${t.noImage}</div>`;
+  return `<div class="rights-badge ${img.cleared ? 'ok' : 'pending'}"><i></i>`
+    + `<a href="${img.rightsURI}" target="_blank" rel="noopener">${img.rights}</a></div>`;
 }
 function renderRecord() {
   const r = $('#record'), t = T();
-  if (!state.sel) { r.innerHTML = `<div class="empty">${t.empty}</div>`; return; }
-  const { c, i } = state.sel;
-  const s = CITIES[c].sites[i], f = fc(s.f);
-  const badge = s.img
-    ? `<div class="rights-badge ${s.img.cleared ? 'ok' : 'pending'}"><i></i>`
-      + `<a href="${s.img.uri}" target="_blank" rel="noopener">${s.img.rights}</a></div>`
-    : `<div class="rights-badge pending"><i></i>${t.noImage}</div>`;
-  const warn = (s.img && s.img.warn) ? `<div class="rec-warn">⚠ ${tr(s.img.warn)}</div>` : '';
-  r.innerHTML = `${recordMedia(s)}${badge}${warn}
-    <div class="rec-tag" style="color:${f.c}">${tr(f.label)} · ${s.d}s · ${cityName(c)}</div>
-    <h3 class="rec-title">${tr(s.t)}</h3>
-    <p class="rec-text">${tr(s.n)}</p>
-    <div class="rec-src"><b>${t.recSource}</b> ${s.s}<br><b>${t.recRecord}</b> ${recordId(c, i)}</div>
+  const s = state.sel && siteById(state.sel);
+  if (!s) { r.innerHTML = `<div class="empty">${t.empty}</div>`; r.classList.remove('is-placeholder'); return; }
+  const f = fc(s.factor);
+  r.classList.toggle('is-placeholder', !!s.placeholder);
+  const flag = s.placeholder
+    ? `<div class="ph-flag"><b>${t.placeholderFlag}</b>${t.placeholderBody}</div>`
+    : `<div class="ok-flag"><i></i>${t.verifiedFlag}</div>`;
+  const warn = (s.image && s.image.warn) ? `<div class="rec-warn">⚠ ${tr(s.image.warn)}</div>` : '';
+  const src = s.source;
+  const srcLine = s.placeholder
+    ? `<b>${t.recSource}</b> <span class="tbc">${src.citation}</span>`
+    : `<b>${t.recSource}</b> ${src.citation}`
+      + (src.reference ? `<br><b>REF</b> ${src.reference}` : '')
+      + (src.url ? `<br><a href="${src.url}" target="_blank" rel="noopener">${t.viewSource}</a>` : '');
+  r.innerHTML = `${recordMedia(s)}${rightsBadge(s)}${warn}${flag}
+    <div class="rec-tag" style="color:${f.c}">${tr(f.label)} · ${s.decade}s · ${cityName(s.city)}</div>
+    <h3 class="rec-title">${tr(s.title)}</h3>
+    <p class="rec-text">${tr(s.narrative)}</p>
+    <div class="rec-src">${srcLine}<br><b>${t.recRecord}</b> ${s.id}</div>
     <button class="rec-more" type="button" id="recMore">${t.readMore}</button>`;
-  $('#recMore').onclick = () => openRecordDrawer(c, i);
+  $('#recMore').onclick = () => openRecordDrawer(s.id);
 }
 function renderSplit() {
   const W = 300, H = 96, n = DECADES.length, step = W / (n - 1);
   const chartCity = state.compare ? 'mpls' : state.city;
-  const d = SPLIT[chartCity];
+  const rows = Object.fromEntries(DECADES.map(d => [d, splitFor(chartCity, d)]));
+  const anyPlaceholder = DECADES.some(d => rows[d] && rows[d].placeholder);
   let out = '', base = new Array(n).fill(0);
   SPLIT_C.forEach((col, k) => {
-    const top = DECADES.map((y, i) => base[i] + d[y][k]);
+    const top = DECADES.map((y, i) => base[i] + rows[y].values[k]);
     const up = DECADES.map((y, i) => `${(i * step).toFixed(1)},${(H - top[i] / 100 * H).toFixed(1)}`);
     const dn = DECADES.map((y, i) => `${(i * step).toFixed(1)},${(H - base[i] / 100 * H).toFixed(1)}`).reverse();
-    out += `<polygon points="${up.concat(dn).join(' ')}" fill="${col}" fill-opacity=".9"></polygon>`;
+    out += `<polygon points="${up.concat(dn).join(' ')}" fill="${col}" fill-opacity="${anyPlaceholder ? '.5' : '.9'}"></polygon>`;
     base = top;
   });
+  if (anyPlaceholder) {
+    out = `<defs><pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#807C73" stroke-width="1" stroke-opacity=".35"></line></pattern></defs>`
+      + out + `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#hatch)"></rect>`;
+  }
   const x = (state.di * step).toFixed(1);
   out += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#1F1D19" stroke-width="1"></line>`;
   $('#splitChart').innerHTML = out;
 
-  const t = T();
-  let note = t.splitNote(decade(), cityName(chartCity), d[decade()]);
-  if (state.compare) note += ' ' + t.splitNote(decade(), cityName('rdam'), SPLIT.rdam[decade()]);
+  const t = T(), cur = rows[decade()];
+  let note = t.splitNote(decade(), cityName(chartCity), cur.values);
+  if (state.compare) note += ' ' + t.splitNote(decade(), cityName('rdam'), splitFor('rdam', decade()).values);
   $('#splitNote').textContent = note;
-  $('#splitCaption').textContent = t.splitCaption;
+  $('#splitCaption').innerHTML = anyPlaceholder
+    ? `<span class="tbc">${t.placeholderFlag}</span> ${t.splitPlaceholder}<br>`
+      + `<b>${t.derivation}</b> ${cur.derivation || t.derivationNone}`
+    : t.splitCaption;
 }
 function renderMapCard() {
   const t = T();
@@ -280,9 +353,8 @@ function syncUrl() {
 }
 function render() {
   if (state.sel) {
-    const s = CITIES[state.sel.c].sites[state.sel.i];
-    const shown = state.active.has(s.f) && s.d <= decade() && visibleCities().includes(state.sel.c);
-    if (!shown) state.sel = null;
+    const s = siteById(state.sel);
+    if (!s || !shownSites().includes(s)) state.sel = null;
   }
   renderYear(); renderFactors(); renderPins(); renderRecord(); renderSplit(); renderMapCard();
   $$('.city-chip').forEach(b => b.classList.toggle('active', b.dataset.city === state.city && !state.compare && !state.global));
@@ -295,6 +367,11 @@ function render() {
 /* ---------- views ---------- */
 function storyAt(y) { return STORIES.find(s => y >= s.from && y <= s.to) || STORIES[0]; }
 
+function selectSite(id) {
+  state.sel = id;
+  renderRecord(); renderPins();
+  $('#record').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
 function selectCity(id, { fly = true } = {}) {
   state.city = id; state.compare = false; state.global = false; state.sel = null;
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === 'map'));
@@ -304,7 +381,7 @@ function selectCity(id, { fly = true } = {}) {
 }
 function setCompare(on) {
   state.compare = on; state.global = false; state.sel = null;
-  if (on) { setHist(false); map.fitBounds([CITIES.mpls.center, CITIES.rdam.center], { padding: [70, 70], maxZoom: 4 }); }
+  if (on) { setHist(false); map.fitBounds(Object.values(CITIES).map(c => c.center), { padding: [70, 70], maxZoom: 4 }); }
   else map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: 1.1 });
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === (on ? 'compare' : 'map')));
   render();
@@ -315,10 +392,9 @@ function setGlobal(on) {
   else map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: 1.1 });
   render();
 }
-function setDecade(i, { keepSel = false } = {}) {
+function setDecade(i) {
   state.di = Math.max(0, Math.min(DECADES.length - 1, i));
   $('#yearRange').value = state.di;
-  if (!keepSel) state.sel = null;
   render();
 }
 
@@ -326,6 +402,7 @@ function setDecade(i, { keepSel = false } = {}) {
 function openDrawer(eyebrow, html) {
   $('#drawerEyebrow').textContent = eyebrow;
   $('#drawerBody').innerHTML = html;
+  $('#drawerBody').scrollTop = 0;
   $('#drawer').classList.add('open');
   $('#drawer').setAttribute('aria-hidden', 'false');
   $('.drawer-backdrop').classList.add('open');
@@ -352,43 +429,73 @@ function openMethodDrawer() {
     <h2>${t.methodTitle}</h2>
     <p class="lead">${t.methodLead}</p>
     <h3>${t.methodH1}</h3>
-    <ol>${FACTORS.map(f => `<li>${tr(f.label)} — ${tr(f.sub)}</li>`).join('')}</ol>
+    <ol>${FACTORS.map(f => `<li>${tr(f.label)}：${tr(f.sub)}</li>`).join('')}</ol>
     <h3>${t.methodH2}</h3><p>${t.methodBody}</p>
     <div class="source-box"><b>${t.methodBox}</b><p>${t.methodBoxBody}</p></div>`);
 }
 function openSourcesDrawer() {
   const t = T();
-  const cities = visibleCities().length ? visibleCities() : [state.city];
-  const rows = [];
-  cities.forEach(c => CITIES[c].sites.forEach((s, i) => {
-    if (s.d > decade() || !state.active.has(s.f)) return;
-    const rights = !s.img ? t.rightsNone : (s.img.cleared ? t.rightsCleared : t.rightsPending);
-    rows.push(`<tr><td class="mono">${s.d}s</td><td>${tr(s.t)}<br><span class="mono">${recordId(c, i)}</span></td><td>${tr(fc(s.f).label)}</td><td class="mono">${rights}</td></tr>`);
-  }));
+  const rows = shownSites().map(s => {
+    const rights = !s.image ? t.rightsNone : (s.image.cleared ? t.rightsCleared : t.rightsPending);
+    return `<tr class="${s.placeholder ? 'row-ph' : ''}">
+      <td class="mono">${s.decade}s</td>
+      <td>${tr(s.title)}<br><span class="mono">${s.id}</span></td>
+      <td class="mono">${s.placeholder ? t.placeholderFlag : t.verifiedFlag}</td>
+      <td class="mono">${rights}</td></tr>`;
+  });
   openDrawer(t.drawerSources, `
-    <span class="drawer-year">${cities.map(cityName).join(' · ')} · ≤ ${decade()}s</span>
+    <span class="drawer-year">${(visibleCities().length ? visibleCities() : [state.city]).map(cityName).join(' · ')} · ≤ ${decade()}s</span>
     <h2>${t.sourcesTitle}</h2>
     <p class="lead">${t.sourcesLead}</p>
     <table class="source-table">
-      <thead><tr><th>${t.thDecade}</th><th>${t.thSite}</th><th>${t.thFactor}</th><th>${t.thRights}</th></tr></thead>
+      <thead><tr><th>${t.thDecade}</th><th>${t.thSite}</th><th>${t.thStatusCol}</th><th>${t.thRights}</th></tr></thead>
       <tbody>${rows.join('') || `<tr><td colspan="4">${t.searchNone}</td></tr>`}</tbody>
     </table>
     <div class="source-box"><b>${t.sourcesBox}</b><p>${t.sourcesBoxBody}</p></div>`);
 }
-function citationFor(c, i) {
-  const s = CITIES[c].sites[i];
-  return `Cycling Cities Research Network, “${s.t.en},” ${CITIES[c].name.en}, ${s.d}s. ${recordId(c, i)}. Concept record, accessed ${new Date().getFullYear()}.`;
+function openStatusDrawer() {
+  const t = T();
+  const ok = SITES.filter(s => !s.placeholder);
+  const ph = SITES.filter(s => s.placeholder);
+  openDrawer(t.dataStatus, `
+    <span class="drawer-year">${META.sites.updated} · ${ok.length} / ${SITES.length}</span>
+    <h2>${t.statusTitle}</h2>
+    <p class="lead">${t.statusLead}</p>
+    <h3>${t.statusVerified} (${ok.length})</h3>
+    <table class="source-table">
+      <thead><tr><th>${t.thSite}</th><th>${t.thRights}</th></tr></thead>
+      <tbody>${ok.map(s => `<tr><td>${tr(s.title)}<br><span class="mono">${s.source.reference}</span>`
+        + `${s.source.url ? `<br><a href="${s.source.url}" target="_blank" rel="noopener">${t.viewSource}</a>` : ''}</td>`
+        + `<td class="mono">${s.image ? (s.image.cleared ? t.rightsCleared : t.rightsPending) : t.rightsNone}</td></tr>`).join('')}</tbody>
+    </table>
+    <p class="caveat">${t.statusCaveat}</p>
+    <h3>${t.statusPlaceholder} (${ph.length})</h3>
+    <p>${t.placeholderBody}</p>
+    <h3>${t.statusSplitH}</h3><p>${t.splitPlaceholder}</p>
+    <h3>${t.statusOverlayH}</h3><p>${t.statusOverlayBody}</p>
+    <div class="source-box"><b>${t.statusNeededH}</b><p>${t.statusNeededBody}</p></div>`);
 }
-function openRecordDrawer(c, i) {
-  const t = T(), s = CITIES[c].sites[i], f = fc(s.f);
+function citationFor(id) {
+  const s = siteById(id);
+  if (!s || s.placeholder) return null;
+  return `Cycling Cities Research Network, “${s.title.en},” ${CITIES[s.city].name.en}, ${s.decade}s. `
+    + `${s.source.archive}, ${s.source.reference}. Record ${s.id}.`;
+}
+function openRecordDrawer(id) {
+  const t = T(), s = siteById(id), f = fc(s.factor);
+  const cite = citationFor(id);
   openDrawer(t.drawerRecord, `
-    <span class="drawer-year">${s.d}s · ${cityName(c)} · ${tr(f.label)}</span>
-    <h2>${tr(s.t)}</h2>
-    <p class="lead">${tr(s.n)}</p>
-    <h3>${t.recSource}</h3><p>${s.s}</p>
-    <h3>${t.recRights}</h3><p>${s.img ? `${s.img.rights} — ${s.img.credit}` : t.noImage}</p>
-    ${(s.img && s.img.warn) ? `<p class="lead">⚠ ${tr(s.img.warn)}</p>` : ''}
-    <div class="source-box"><b>${t.citeLabel}</b><p>${citationFor(c, i)}</p></div>`);
+    <span class="drawer-year">${s.decade}s · ${cityName(s.city)} · ${tr(f.label)}</span>
+    <h2>${tr(s.title)}</h2>
+    ${s.placeholder ? `<div class="ph-flag"><b>${t.placeholderFlag}</b>${t.placeholderBody}</div>` : ''}
+    <p class="lead">${tr(s.narrative)}</p>
+    <h3>${t.recSource}</h3>
+    <p>${s.placeholder ? `<span class="tbc">${s.source.citation}</span>` : s.source.citation}</p>
+    <h3>${t.recRights}</h3>
+    <p>${s.image ? `${s.image.rights} — ${s.image.credit}` : t.noImage}</p>
+    ${(s.image && s.image.warn) ? `<p class="caveat">⚠ ${tr(s.image.warn)}</p>` : ''}
+    ${cite ? `<div class="source-box"><b>${t.citeLabel}</b><p>${cite}</p></div>`
+           : `<div class="source-box"><b>${t.citeLabel}</b><p>${t.citeBlocked}</p></div>`}`);
 }
 
 /* ---------- search ---------- */
@@ -396,16 +503,21 @@ function searchIndex() {
   const t = T(), out = [];
   Object.keys(CITIES).forEach(c => out.push({ kind: t.kindCity, label: cityName(c), sub: CITIES[c].name.en, run: () => selectCity(c) }));
   DECADES.forEach((y, i) => out.push({ kind: t.kindDecade, label: `${y}s`, sub: tr(ERAS[y]), run: () => setDecade(i) }));
-  FACTORS.forEach(f => out.push({ kind: t.kindFactor, label: tr(f.label), sub: tr(f.sub), run: () => { state.active = new Set([f.id]); state.sel = null; render(); } }));
-  Object.keys(CITIES).forEach(c => CITIES[c].sites.forEach((s, i) => out.push({
-    kind: t.kindSite, label: tr(s.t), sub: `${cityName(c)} · ${s.d}s`,
-    run: () => { selectCity(c, { fly: false }); setDecade(DECADES.indexOf(s.d), { keepSel: true }); state.sel = { c, i }; map.flyTo(s.ll, 15, { duration: 1.1 }); render(); }
-  })));
+  FACTORS.forEach(f => out.push({ kind: t.kindFactor, label: tr(f.label), sub: tr(f.sub), run: () => { state.active = new Set([f.id]); render(); } }));
+  SITES.forEach(s => out.push({
+    kind: t.kindSite, label: tr(s.title),
+    sub: `${cityName(s.city)} · ${s.decade}s${s.placeholder ? ' · ' + t.placeholderFlag : ''}`,
+    run: () => {
+      selectCity(s.city, { fly: false });
+      setDecade(DECADES.indexOf(s.decade));
+      selectSite(s.id);
+      map.flyTo(s.coordinates, 15, { duration: 1.1 });
+    }
+  }));
   return out;
 }
 function runSearch(q) {
-  const t = T(), items = searchIndex();
-  const norm = q.trim().toLowerCase();
+  const t = T(), items = searchIndex(), norm = q.trim().toLowerCase();
   const hits = norm
     ? items.filter(it => (it.label + ' ' + it.sub + ' ' + it.kind).toLowerCase().includes(norm)).slice(0, 24)
     : items.filter(it => it.kind === t.kindCity || it.kind === t.kindFactor);
@@ -423,7 +535,7 @@ function toast(msg) {
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
 /* ---------- timeline playback ---------- */
@@ -490,19 +602,21 @@ function applyLang() {
   $('#splitLegend').innerHTML = SPLIT_C.map((c, i) => `<span><i style="background:${c}"></i>${t.legend[i]}</span>`).join('');
   $$('.base-pill').forEach((b, i) => b.textContent = t.bases[i]);
   $('#sourcesBtn').textContent = t.allSources;
+  $('#statusBtn').textContent = t.dataStatus;
   $('#shareBtn').querySelector('span').textContent = t.share;
   $('#citeBtn').querySelector('span').textContent = t.cite;
   $('#footText').innerHTML = t.foot;
-  $('#flagText').textContent = t.flag;
+  $('#flagText').textContent = `${t.statusPlaceholder} ${SITES.length - verifiedCount()} / ${SITES.length}`;
 
   if ($('#notice')) {
     $('#noticeTitle').textContent = t.noticeTitle;
     $('#noticeBody').textContent = t.noticeBody;
+    $('#noticeLink').textContent = t.dataStatus;
     $('#noticeClose').setAttribute('aria-label', t.noticeClose);
   }
   $('#fitBtn').setAttribute('aria-label', t.fitLabel);
-  $('#mapLegend').innerHTML = [['dot-site', 0], ['dot-now', 1], ['dot-net', 2]]
-    .map(([cls, i]) => `<span><i class="${cls}"></i>${t.mapLegend[i]}</span>`).join('');
+  $('#mapLegend').innerHTML = ['dot-ok', 'dot-ph', 'dot-now', 'dot-net']
+    .map((cls, i) => `<span><i class="${cls}"></i>${t.mapLegend[i]}</span>`).join('');
 
   $('#searchInput').placeholder = t.searchPlaceholder;
   $('#contribEyebrow').textContent = t.contribEyebrow;
@@ -519,85 +633,96 @@ function applyLang() {
 }
 
 /* ---------- events ---------- */
-$('#yearRange').addEventListener('input', e => setDecade(+e.target.value));
-$('#playBtn').onclick = togglePlay;
-$('#histBtn').onclick = () => setHist(!state.histOn);
-$('#swipeBtn').onclick = () => setSwipe(!state.swipeOn);
-$('#histOpa').addEventListener('input', e => {
-  state.histOpa = +e.target.value / 100;
-  $('#histOpaVal').textContent = e.target.value + '%';
-  if (histLayer && !state.swipeOn) histLayer.setOpacity(state.histOpa);
-});
-$$('.city-chip').forEach(b => b.onclick = () => selectCity(b.dataset.city));
-$('#swapBtn').onclick = () => selectCity(state.city === 'mpls' ? 'rdam' : 'mpls');
-$('#compareBtn').onclick = () => setCompare(!state.compare);
-$('#globalBtn').onclick = () => setGlobal(!state.global);
-$('#allFactors').onclick = () => {
-  const showAll = state.active.size !== FACTORS.length;
-  state.active = new Set(showAll ? FACTORS.map(f => f.id) : []);
-  state.sel = null;
-  render();
-};
-$$('.base-pill').forEach(b => b.onclick = () => {
-  $$('.base-pill').forEach(x => x.classList.remove('active'));
-  b.classList.add('active');
-  map.removeLayer(currentBase);
-  currentBase = BASES[b.dataset.base].addTo(map);
-});
-$('#zoomIn').onclick = () => map.zoomIn();
-$('#zoomOut').onclick = () => map.zoomOut();
-$('#fitBtn').onclick = () => {
-  if (state.global) map.flyTo([22, 12], 2.2, { duration: .9 });
-  else if (state.compare) map.fitBounds([CITIES.mpls.center, CITIES.rdam.center], { padding: [70, 70], maxZoom: 4 });
-  else map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: .9 });
-};
-$('#noticeClose').onclick = () => $('#notice').remove();
-$('#sourcesBtn').onclick = openSourcesDrawer;
+function bindEvents() {
+  $('#yearRange').max = String(DECADES.length - 1);
+  $('#yearRange').addEventListener('input', e => setDecade(+e.target.value));
+  $('#playBtn').onclick = togglePlay;
+  $('#histBtn').onclick = () => setHist(!state.histOn);
+  $('#swipeBtn').onclick = () => setSwipe(!state.swipeOn);
+  $('#histOpa').addEventListener('input', e => {
+    state.histOpa = +e.target.value / 100;
+    $('#histOpaVal').textContent = e.target.value + '%';
+    if (histLayer && !state.swipeOn) histLayer.setOpacity(state.histOpa);
+  });
+  $$('.city-chip').forEach(b => b.onclick = () => selectCity(b.dataset.city));
+  $('#swapBtn').onclick = () => {
+    const ids = Object.keys(CITIES);
+    selectCity(ids[(ids.indexOf(state.city) + 1) % ids.length]);
+  };
+  $('#compareBtn').onclick = () => setCompare(!state.compare);
+  $('#globalBtn').onclick = () => setGlobal(!state.global);
+  $('#allFactors').onclick = () => {
+    const showAll = state.active.size !== FACTORS.length;
+    state.active = new Set(showAll ? FACTORS.map(f => f.id) : []);
+    render();
+  };
+  $$('.base-pill').forEach(b => b.onclick = () => {
+    $$('.base-pill').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    map.removeLayer(currentBase);
+    currentBase = BASES[b.dataset.base].addTo(map);
+  });
+  $('#zoomIn').onclick = () => map.zoomIn();
+  $('#zoomOut').onclick = () => map.zoomOut();
+  $('#fitBtn').onclick = () => {
+    if (state.global) map.flyTo([22, 12], 2.2, { duration: .9 });
+    else if (state.compare) map.fitBounds(Object.values(CITIES).map(c => c.center), { padding: [70, 70], maxZoom: 4 });
+    else map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: .9 });
+  };
+  $('#noticeClose').onclick = () => $('#notice').remove();
+  $('#noticeLink').onclick = openStatusDrawer;
+  $('#sourcesBtn').onclick = openSourcesDrawer;
+  $('#statusBtn').onclick = openStatusDrawer;
 
-$$('.nav-item').forEach(b => b.onclick = () => {
-  const v = b.dataset.view;
-  $$('.nav-item').forEach(x => x.classList.toggle('active', x === b));
-  if (v === 'compare') setCompare(true);
-  else if (v === 'stories') openStoryDrawer();
-  else if (v === 'method') openMethodDrawer();
-  else { setCompare(false); setGlobal(false); }
-});
-$$('[data-close-drawer]').forEach(b => b.onclick = closeDrawer);
+  $$('.nav-item').forEach(b => b.onclick = () => {
+    const v = b.dataset.view;
+    $$('.nav-item').forEach(x => x.classList.toggle('active', x === b));
+    if (v === 'compare') setCompare(true);
+    else if (v === 'stories') openStoryDrawer();
+    else if (v === 'method') openMethodDrawer();
+    else { setCompare(false); setGlobal(false); }
+  });
+  $$('[data-close-drawer]').forEach(b => b.onclick = closeDrawer);
 
-$('#searchBtn').onclick = () => { $('#searchDialog').showModal(); runSearch(''); $('#searchInput').focus(); };
-$('#searchClose').onclick = () => $('#searchDialog').close();
-$('#searchInput').addEventListener('input', e => runSearch(e.target.value));
-$('#contribBtn').onclick = () => $('#contribDialog').showModal();
-$('#contribClose').onclick = () => $('#contribDialog').close();
-$('#menuBtn').onclick = () => $('#panel').classList.toggle('collapsed');
+  $('#searchBtn').onclick = () => { $('#searchDialog').showModal(); runSearch(''); $('#searchInput').focus(); };
+  $('#searchClose').onclick = () => $('#searchDialog').close();
+  $('#searchInput').addEventListener('input', e => runSearch(e.target.value));
+  $('#contribBtn').onclick = () => $('#contribDialog').showModal();
+  $('#contribClose').onclick = () => $('#contribDialog').close();
+  $('#menuBtn').onclick = () => $('#panel').classList.toggle('collapsed');
 
-$('#shareBtn').onclick = async () => {
-  syncUrl();
-  try { await navigator.clipboard.writeText(location.href); toast(T().tShare); }
-  catch { toast(location.href); }
-};
-$('#citeBtn').onclick = async () => {
-  const text = state.sel
-    ? citationFor(state.sel.c, state.sel.i)
-    : `Cycling Cities Research Network, ${CITIES[state.city].name.en}, ${decade()}s. Concept prototype, accessed ${new Date().getFullYear()}. ${location.href}`;
-  try { await navigator.clipboard.writeText(text); toast(T().tCite); }
-  catch { toast(text); }
-};
+  $('#shareBtn').onclick = async () => {
+    syncUrl();
+    try { await navigator.clipboard.writeText(location.href); toast(T().tShare); }
+    catch { toast(location.href); }
+  };
+  $('#citeBtn').onclick = async () => {
+    const cite = state.sel && citationFor(state.sel);
+    if (!cite) { toast(T().citeBlocked); return; }
+    try { await navigator.clipboard.writeText(cite); toast(T().tCite); }
+    catch { toast(cite); }
+  };
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeDrawer();
-  if (e.target.tagName === 'INPUT') return;
-  if (e.key === '/' && !$('#searchDialog').open) { e.preventDefault(); $('#searchBtn').click(); }
-  if (e.key === 'ArrowRight' && state.di < DECADES.length - 1) setDecade(state.di + 1);
-  if (e.key === 'ArrowLeft' && state.di > 0) setDecade(state.di - 1);
-});
-$('#searchDialog').addEventListener('click', e => { if (e.target.id === 'searchDialog') $('#searchDialog').close(); });
-$('#contribDialog').addEventListener('click', e => { if (e.target.id === 'contribDialog') $('#contribDialog').close(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDrawer();
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === '/' && !$('#searchDialog').open) { e.preventDefault(); $('#searchBtn').click(); }
+    if (e.key === 'ArrowRight' && state.di < DECADES.length - 1) setDecade(state.di + 1);
+    if (e.key === 'ArrowLeft' && state.di > 0) setDecade(state.di - 1);
+  });
+  $('#searchDialog').addEventListener('click', e => { if (e.target.id === 'searchDialog') $('#searchDialog').close(); });
+  $('#contribDialog').addEventListener('click', e => { if (e.target.id === 'contribDialog') $('#contribDialog').close(); });
+  bindDividerDrag();
+}
 
 /* ---------- boot ---------- */
-renderTicks();
-$('#yearRange').value = state.di;
-positionDivider();
-map.setView(CITIES[state.city].center, CITIES[state.city].zoom);
-applyLang();
-setTimeout(() => map.invalidateSize(), 60);
+loadData().then(() => {
+  initMap();
+  renderTicks();
+  $('#yearRange').value = state.di;
+  positionDivider();
+  bindEvents();
+  applyLang();
+  document.body.classList.add('ready');
+  setTimeout(() => map.invalidateSize(), 60);
+}).catch(showLoadError);

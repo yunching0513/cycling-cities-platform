@@ -1,0 +1,571 @@
+{
+  "meta": {
+    "updated": "2026-08-19",
+    "schema": "build-plan-ai.md §4.4",
+    "total": 28,
+    "placeholder": 28,
+    "note": "All values are interface placeholders carried over from prototype v0.5. derivation is null because no derivation method can be claimed for them."
+  },
+  "records": [
+    {
+      "city": "mpls",
+      "decade": 1890,
+      "values": [
+        14,
+        58,
+        24,
+        4
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 1900,
+      "values": [
+        16,
+        52,
+        28,
+        4
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 1910,
+      "values": [
+        12,
+        44,
+        38,
+        6
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 1920,
+      "values": [
+        9,
+        38,
+        36,
+        17
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 1930,
+      "values": [
+        8,
+        34,
+        30,
+        28
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 1940,
+      "values": [
+        12,
+        32,
+        28,
+        28
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 1950,
+      "values": [
+        5,
+        24,
+        18,
+        53
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 1960,
+      "values": [
+        3,
+        18,
+        10,
+        69
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 1970,
+      "values": [
+        2,
+        15,
+        7,
+        76
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 1980,
+      "values": [
+        2,
+        13,
+        6,
+        79
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 1990,
+      "values": [
+        3,
+        12,
+        6,
+        79
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 2000,
+      "values": [
+        4,
+        12,
+        6,
+        78
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 2010,
+      "values": [
+        5,
+        13,
+        7,
+        75
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "mpls",
+      "decade": 2020,
+      "values": [
+        6,
+        14,
+        6,
+        74
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1890,
+      "values": [
+        10,
+        66,
+        22,
+        2
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1900,
+      "values": [
+        18,
+        56,
+        24,
+        2
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1910,
+      "values": [
+        26,
+        46,
+        25,
+        3
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1920,
+      "values": [
+        34,
+        38,
+        24,
+        4
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1930,
+      "values": [
+        42,
+        30,
+        22,
+        6
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1940,
+      "values": [
+        48,
+        28,
+        18,
+        6
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1950,
+      "values": [
+        38,
+        26,
+        24,
+        12
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1960,
+      "values": [
+        26,
+        20,
+        26,
+        28
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1970,
+      "values": [
+        18,
+        17,
+        23,
+        42
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1980,
+      "values": [
+        16,
+        16,
+        22,
+        46
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 1990,
+      "values": [
+        19,
+        16,
+        21,
+        44
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 2000,
+      "values": [
+        22,
+        17,
+        22,
+        39
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 2010,
+      "values": [
+        25,
+        18,
+        22,
+        35
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    },
+    {
+      "city": "rdam",
+      "decade": 2020,
+      "values": [
+        28,
+        19,
+        21,
+        32
+      ],
+      "derivation": null,
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "placeholder": true
+    }
+  ]
+}

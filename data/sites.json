@@ -1,0 +1,982 @@
+{
+  "meta": {
+    "updated": "2026-08-19",
+    "schema": "build-plan-ai.md §4.1",
+    "total": 31,
+    "verified": 4,
+    "placeholder": 27,
+    "note": "placeholder:true means the record has not been confirmed by the research team. Its source.citation is [TO BE CONFIRMED] and must not be cited."
+  },
+  "sites": [
+    {
+      "id": "MPLS-FORM-001",
+      "city": "mpls",
+      "decade": 1890,
+      "factor": "form",
+      "title": {
+        "en": "Nicollet Avenue in the bicycle boom",
+        "zh": "單車熱潮中的Nicollet大道",
+        "nl": "Nicollet Avenue tijdens de fietsboom"
+      },
+      "narrative": {
+        "en": "Downtown retail streets absorb the first mass cycling wave; bicycle dealers cluster along four blocks of Nicollet. The nearest surviving street view dates from just after the boom.",
+        "zh": "市中心的商業街道吸收了第一波大眾騎乘熱潮，自行車行沿Nicollet大道四個街廓聚集。目前留存最接近的街景影像，攝於熱潮剛過之後。",
+        "nl": "De winkelstraten in het centrum vangen de eerste massale fietsgolf op; fietshandelaren clusteren langs vier blokken van Nicollet. De dichtstbijzijnde bewaarde straatopname dateert van net na de boom."
+      },
+      "coordinates": [
+        44.974,
+        -93.2757
+      ],
+      "source": {
+        "citation": "Detroit Publishing Co., Nicollet Avenue, Minneapolis, between 1900 and 1906. Library of Congress, Prints & Photographs Division, LC-DIG-det-4a12295.",
+        "archive": "Library of Congress, Prints & Photographs Division",
+        "reference": "LC-DIG-det-4a12295",
+        "url": "https://www.loc.gov/item/2016804576/",
+        "verifiedBy": null,
+        "verifiedOn": "2026-08-18"
+      },
+      "image": {
+        "commons": null,
+        "link": "https://www.loc.gov/item/2016804576/",
+        "credit": "Detroit Publishing Company Collection, Library of Congress",
+        "rights": "No known restrictions on publication",
+        "rightsURI": "https://rightsstatements.org/vocab/NKC/1.0/",
+        "cleared": false,
+        "warn": {
+          "en": "Photograph dates from 1900–1906, later than this decade slice",
+          "zh": "照片攝於1900–1906年，晚於本年代切片",
+          "nl": "Foto dateert uit 1900–1906, later dan deze decenniumsnede"
+        }
+      },
+      "placeholder": false
+    },
+    {
+      "id": "MPLS-CULT-001",
+      "city": "mpls",
+      "decade": 1890,
+      "factor": "cult",
+      "title": {
+        "en": "Minneapolis Cycle Path Association",
+        "zh": "明尼亞波利斯自行車道協會",
+        "nl": "Minneapolis Cycle Path Association"
+      },
+      "narrative": {
+        "en": "Middle-class riders organise to fund gravel side-paths, framing cycling as civic improvement rather than sport.",
+        "zh": "中產階級騎士自行集資鋪設碎石側道，把騎車定位為市政建設而非運動。",
+        "nl": "Fietsers uit de middenklasse organiseren zich om grindpaden naast de weg te bekostigen en presenteren fietsen als stadsverbetering in plaats van sport."
+      },
+      "coordinates": [
+        44.968,
+        -93.286
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-POLICY-001",
+      "city": "mpls",
+      "decade": 1900,
+      "factor": "policy",
+      "title": {
+        "en": "The cycle path tax stamp",
+        "zh": "自行車道稅票",
+        "nl": "De belastingzegel voor het fietspad"
+      },
+      "narrative": {
+        "en": "A rider-funded licence stamp pays for the side-path network: an early user-charge experiment in street finance.",
+        "zh": "由騎士繳費取得的牌照稅票支付側道網絡的建設：街道財政中相當早期的使用者付費實驗。",
+        "nl": "Een door fietsers betaalde vergunningzegel financiert het net van zijpaden: een vroeg experiment met gebruikersheffingen in de straatfinanciering."
+      },
+      "coordinates": [
+        44.9778,
+        -93.265
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-ALT-001",
+      "city": "mpls",
+      "decade": 1910,
+      "factor": "alt",
+      "title": {
+        "en": "Streetcar network at maximum extent",
+        "zh": "電車路網達到最大範圍",
+        "nl": "Tramnet op zijn grootste omvang"
+      },
+      "narrative": {
+        "en": "Twin City Rapid Transit reaches its widest reach; cycling recedes to shorter local trips as the tram becomes the default urban journey.",
+        "zh": "Twin City Rapid Transit的路網達到最大範圍；當電車成為城市移動的預設選項，騎乘退回到較短的在地行程。",
+        "nl": "Twin City Rapid Transit bereikt zijn grootste bereik; fietsen wijkt terug naar kortere lokale ritten nu de tram de vanzelfsprekende stadsreis wordt."
+      },
+      "coordinates": [
+        44.9483,
+        -93.298
+      ],
+      "source": {
+        "citation": "Keystone View Company, Scene in the busy northern metropolis, Nicollet Ave., Minneapolis, 1915. Library of Congress, Prints & Photographs Division, stereo 1s13511.",
+        "archive": "Library of Congress, Prints & Photographs Division",
+        "reference": "stereo 1s13511",
+        "url": "https://www.loc.gov/item/2018649601/",
+        "verifiedBy": null,
+        "verifiedOn": "2026-08-18"
+      },
+      "image": {
+        "commons": null,
+        "link": "https://www.loc.gov/item/2018649601/",
+        "credit": "Keystone View Company · Library of Congress",
+        "rights": "No known restrictions on publication",
+        "rightsURI": "https://rightsstatements.org/vocab/NKC/1.0/",
+        "cleared": false,
+        "warn": null
+      },
+      "placeholder": false
+    },
+    {
+      "id": "MPLS-FORM-002",
+      "city": "mpls",
+      "decade": 1920,
+      "factor": "form",
+      "title": {
+        "en": "Kerb parking arrives on Hennepin",
+        "zh": "Hennepin大道出現路邊停車",
+        "nl": "Parkeren langs de stoeprand komt naar Hennepin"
+      },
+      "narrative": {
+        "en": "Street space is re-allocated to stationary cars, narrowing the effective riding width on the main downtown spine.",
+        "zh": "街道空間被重新分配給靜止的汽車，市中心主軸的有效騎乘寬度因此縮減。",
+        "nl": "Straatruimte wordt heringedeeld voor stilstaande auto’s, waardoor de bruikbare rijbreedte op de hoofdas van het centrum versmalt."
+      },
+      "coordinates": [
+        44.98,
+        -93.273
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-POLICY-002",
+      "city": "mpls",
+      "decade": 1930,
+      "factor": "policy",
+      "title": {
+        "en": "WPA paving on Minnehaha Parkway",
+        "zh": "WPA鋪設Minnehaha公園道",
+        "nl": "WPA-verharding van de Minnehaha Parkway"
+      },
+      "narrative": {
+        "en": "Federal relief work paves the Grand Rounds; recreational riding is formally separated from commuting.",
+        "zh": "聯邦救濟工程鋪設了Grand Rounds公園道系統，休閒騎乘自此在制度上與通勤分離。",
+        "nl": "Federale werkverschaffing verhardt de Grand Rounds; recreatief fietsen wordt formeel gescheiden van woon-werkverkeer."
+      },
+      "coordinates": [
+        44.917,
+        -93.25
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-MOVE-001",
+      "city": "mpls",
+      "decade": 1930,
+      "factor": "move",
+      "title": {
+        "en": "The 1934 truckers strike",
+        "zh": "1934年卡車司機罷工",
+        "nl": "De vrachtwagenstaking van 1934"
+      },
+      "narrative": {
+        "en": "The market district becomes contested political space; who moves through the street is settled by force, not design.",
+        "zh": "市場區成為政治角力的空間；誰能通行街道，是由武力而非規劃決定。",
+        "nl": "De marktwijk wordt betwiste politieke ruimte; wie zich door de straat beweegt, wordt beslist met geweld en niet met ontwerp."
+      },
+      "coordinates": [
+        44.98,
+        -93.279
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-ALT-002",
+      "city": "mpls",
+      "decade": 1940,
+      "factor": "alt",
+      "title": {
+        "en": "Fuel rationing revives the bicycle",
+        "zh": "燃料配給讓自行車短暫復甦",
+        "nl": "Brandstofdistributie doet de fiets herleven"
+      },
+      "narrative": {
+        "en": "Wartime restrictions produce a short, sharp return to cycling for work trips to the Hiawatha industrial belt.",
+        "zh": "戰時管制帶來一段短暫而劇烈的回流：前往Hiawatha工業帶的通勤重新以自行車完成。",
+        "nl": "Oorlogsbeperkingen leiden tot een korte, scherpe terugkeer naar de fiets voor werkritten naar de industriezone langs Hiawatha."
+      },
+      "coordinates": [
+        44.953,
+        -93.238
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-FORM-003",
+      "city": "mpls",
+      "decade": 1950,
+      "factor": "form",
+      "title": {
+        "en": "I-35W right-of-way cleared",
+        "zh": "I-35W路權用地清空",
+        "nl": "Tracé voor I-35W vrijgemaakt"
+      },
+      "narrative": {
+        "en": "Freeway construction severs north-south neighbourhood connections for two generations of riders.",
+        "zh": "高速公路興建切斷了南北向的鄰里連結，影響兩個世代的騎乘者。",
+        "nl": "De aanleg van de snelweg doorsnijdt noord-zuidverbindingen tussen wijken voor twee generaties fietsers."
+      },
+      "coordinates": [
+        44.955,
+        -93.262
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-CULT-002",
+      "city": "mpls",
+      "decade": 1960,
+      "factor": "cult",
+      "title": {
+        "en": "The bicycle becomes a child’s toy",
+        "zh": "自行車變成兒童玩具",
+        "nl": "De fiets wordt kinderspeelgoed"
+      },
+      "narrative": {
+        "en": "Advertising and school policy recast cycling as juvenile, removing it from adult transport planning entirely.",
+        "zh": "廣告與學校政策把騎車重新定義為兒童活動，使它完全脫離成人交通規劃的視野。",
+        "nl": "Reclame en schoolbeleid herdefiniëren fietsen als iets voor kinderen en halen het volledig weg uit de vervoersplanning voor volwassenen."
+      },
+      "coordinates": [
+        44.927,
+        -93.29
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-MOVE-002",
+      "city": "mpls",
+      "decade": 1970,
+      "factor": "move",
+      "title": {
+        "en": "Twin Cities Bicycle Club campaigns",
+        "zh": "Twin Cities Bicycle Club的倡議行動",
+        "nl": "Campagnes van de Twin Cities Bicycle Club"
+      },
+      "narrative": {
+        "en": "Oil-crisis advocacy near the university puts cycling back on the municipal agenda as serious transport.",
+        "zh": "石油危機期間，大學周邊的倡議行動讓自行車以「正式運具」的身分重回市政議程。",
+        "nl": "Belangenbehartiging tijdens de oliecrisis bij de universiteit zet fietsen weer als serieus vervoermiddel op de gemeentelijke agenda."
+      },
+      "coordinates": [
+        44.97,
+        -93.24
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-POLICY-003",
+      "city": "mpls",
+      "decade": 1980,
+      "factor": "policy",
+      "title": {
+        "en": "Cedar Lake rail-to-trail",
+        "zh": "Cedar Lake廢鐵道改建步道",
+        "nl": "Cedar Lake: van spoorlijn naar fietspad"
+      },
+      "narrative": {
+        "en": "Abandoned freight corridors are converted, creating the first grade-separated commuter route into downtown.",
+        "zh": "廢棄的貨運廊道被轉作他用，形成第一條進入市中心、與車流立體分離的通勤路線。",
+        "nl": "Verlaten goederencorridors worden omgebouwd tot de eerste ongelijkvloerse woon-werkroute naar het centrum."
+      },
+      "coordinates": [
+        44.964,
+        -93.313
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-FORM-004",
+      "city": "mpls",
+      "decade": 1990,
+      "factor": "form",
+      "title": {
+        "en": "Midtown Greenway corridor acquired",
+        "zh": "取得Midtown Greenway廊道",
+        "nl": "Verwerving van de Midtown Greenway-corridor"
+      },
+      "narrative": {
+        "en": "A sunken rail trench becomes the spine of the network: the topography of cycling inherited from freight.",
+        "zh": "一條下沉式鐵道壕溝成為路網的骨幹：騎乘的地形，繼承自貨運鐵路。",
+        "nl": "Een verdiepte spoorbak wordt de ruggengraat van het netwerk: de fietstopografie is geërfd van het goederenvervoer."
+      },
+      "coordinates": [
+        44.9482,
+        -93.2765
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-ALT-003",
+      "city": "mpls",
+      "decade": 2010,
+      "factor": "alt",
+      "title": {
+        "en": "Nice Ride bike share launch",
+        "zh": "Nice Ride公共自行車上線",
+        "nl": "Lancering van deelfietssysteem Nice Ride"
+      },
+      "narrative": {
+        "en": "Docked bike share extends the network into a measurable system with daily origin-destination flows.",
+        "zh": "有樁式共享自行車把路網延伸成一套可量測的系統，每日起訖流量都留下紀錄。",
+        "nl": "Deelfietsen met vaste stations breiden het netwerk uit tot een meetbaar systeem met dagelijkse herkomst-bestemmingsstromen."
+      },
+      "coordinates": [
+        44.9765,
+        -93.276
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-POLICY-004",
+      "city": "mpls",
+      "decade": 2010,
+      "factor": "policy",
+      "title": {
+        "en": "Protected bikeway plan adopted",
+        "zh": "通過保護型自行車道計畫",
+        "nl": "Plan voor vrijliggende fietspaden aangenomen"
+      },
+      "narrative": {
+        "en": "Design standards shift from painted lanes to physical separation on Washington Avenue and beyond.",
+        "zh": "設計標準從彩繪標線轉向實體分隔，先在Washington Avenue實施並向外擴展。",
+        "nl": "Ontwerpnormen verschuiven van gemarkeerde stroken naar fysieke scheiding, te beginnen op Washington Avenue."
+      },
+      "coordinates": [
+        44.97,
+        -93.267
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "MPLS-MOVE-003",
+      "city": "mpls",
+      "decade": 2020,
+      "factor": "move",
+      "title": {
+        "en": "Open Streets expands citywide",
+        "zh": "Open Streets擴展至全市",
+        "nl": "Open Streets breidt uit over de hele stad"
+      },
+      "narrative": {
+        "en": "Temporary car-free days along Lake Street become a routine tool for testing permanent reallocation.",
+        "zh": "Lake Street沿線的臨時無車日，成為測試永久性空間再分配的常態工具。",
+        "nl": "Tijdelijke autovrije dagen langs Lake Street worden een vast instrument om permanente herverdeling te testen."
+      },
+      "coordinates": [
+        44.948,
+        -93.247
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-FORM-001",
+      "city": "rdam",
+      "decade": 1900,
+      "factor": "form",
+      "title": {
+        "en": "The Coolvest before the fill",
+        "zh": "填平之前的Coolvest",
+        "nl": "De Coolvest vóór de demping"
+      },
+      "narrative": {
+        "en": "The Coolvest is still open water. Filling began in 1913 and finished in 1922, turning the moat into the Coolsingel: the city’s first purpose-built modern traffic street.",
+        "zh": "此時的Coolvest仍是開放水域。填平工程始於1913年、完成於1922年，把這條水道變成Coolsingel——全市第一條為現代交通而設計的街道。",
+        "nl": "De Coolvest is nog open water. De demping begon in 1913 en werd in 1922 voltooid, waarmee de vest veranderde in de Coolsingel: de eerste moderne verkeersstraat die de stad daarvoor speciaal aanlegde."
+      },
+      "coordinates": [
+        51.9225,
+        4.479
+      ],
+      "source": {
+        "citation": "Photochrom print, Detroit Publishing Co. / Photoglob Zürich, c.1900. Library of Congress, Photochrom Prints Collection, LC-DIG-ppmsc-05850.",
+        "archive": "Library of Congress, Photochrom Prints Collection",
+        "reference": "LC-DIG-ppmsc-05850",
+        "url": "https://commons.wikimedia.org/wiki/File:Rotterdam-Coolsingel-1900.jpg",
+        "verifiedBy": null,
+        "verifiedOn": "2026-08-18"
+      },
+      "image": {
+        "commons": "Rotterdam-Coolsingel-1900.jpg",
+        "link": "https://commons.wikimedia.org/wiki/File:Rotterdam-Coolsingel-1900.jpg",
+        "credit": "Library of Congress, Photochrom Prints Collection",
+        "rights": "Public Domain Mark 1.0",
+        "rightsURI": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "cleared": true,
+        "warn": null
+      },
+      "placeholder": false
+    },
+    {
+      "id": "RDAM-CULT-001",
+      "city": "rdam",
+      "decade": 1900,
+      "factor": "cult",
+      "title": {
+        "en": "Cycling as respectable transport",
+        "zh": "騎車作為體面的交通方式",
+        "nl": "Fietsen als respectabel vervoer"
+      },
+      "narrative": {
+        "en": "Unlike the American case, the bicycle keeps adult, middle-class legitimacy well past 1900.",
+        "zh": "與美國的情況不同，自行車在1900年之後仍長期保有成人、中產階級的正當性。",
+        "nl": "Anders dan in de Verenigde Staten behoudt de fiets ook lang na 1900 haar volwassen, burgerlijke status."
+      },
+      "coordinates": [
+        51.918,
+        4.475
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-ALT-001",
+      "city": "rdam",
+      "decade": 1910,
+      "factor": "alt",
+      "title": {
+        "en": "Tram network expansion at Blaak",
+        "zh": "Blaak一帶的電車路網擴張",
+        "nl": "Uitbreiding van het tramnet bij de Blaak"
+      },
+      "narrative": {
+        "en": "Electric trams and bicycles grow together rather than substituting for one another.",
+        "zh": "電車與自行車是一起成長的，而非彼此取代。",
+        "nl": "Elektrische trams en fietsen groeien samen op in plaats van elkaar te vervangen."
+      },
+      "coordinates": [
+        51.916,
+        4.482
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-FORM-002",
+      "city": "rdam",
+      "decade": 1920,
+      "factor": "form",
+      "title": {
+        "en": "The Coolsingel opens as a traffic street",
+        "zh": "Coolsingel以交通幹道之姿啟用",
+        "nl": "De Coolsingel opent als verkeersstraat"
+      },
+      "narrative": {
+        "en": "The filled vest becomes a wide boulevard, setting the template for street space allocation in the centre.",
+        "zh": "填平後的水道成為寬闊的林蔭大道，也為市中心的街道空間分配立下範式。",
+        "nl": "De gedempte vest wordt een brede boulevard en zet de norm voor de verdeling van straatruimte in het centrum."
+      },
+      "coordinates": [
+        51.9235,
+        4.4785
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-POLICY-001",
+      "city": "rdam",
+      "decade": 1920,
+      "factor": "policy",
+      "title": {
+        "en": "First separated cycle track",
+        "zh": "第一條分隔式自行車道",
+        "nl": "Het eerste vrijliggende fietspad"
+      },
+      "narrative": {
+        "en": "Separation enters the city’s engineering norms decades before it spreads to other countries.",
+        "zh": "「分隔」成為市政工程規範的一部分，比其他國家早了數十年。",
+        "nl": "Scheiding wordt decennia eerder dan in andere landen onderdeel van de technische normen van de stad."
+      },
+      "coordinates": [
+        51.927,
+        4.47
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-FORM-003",
+      "city": "rdam",
+      "decade": 1930,
+      "factor": "form",
+      "title": {
+        "en": "Maastunnel planned with a cycle tube",
+        "zh": "Maastunnel規劃時即納入自行車專用管道",
+        "nl": "Maastunnel ontworpen met een fietsbuis"
+      },
+      "narrative": {
+        "en": "A dedicated bicycle bore is designed into major river infrastructure from the outset.",
+        "zh": "大型跨河基礎建設從一開始就設計了自行車專用坑道。",
+        "nl": "Een aparte fietsbuis wordt vanaf het begin meeontworpen in grote rivierinfrastructuur."
+      },
+      "coordinates": [
+        51.9062,
+        4.4718
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-MOVE-001",
+      "city": "rdam",
+      "decade": 1940,
+      "factor": "move",
+      "title": {
+        "en": "Bicycle confiscation under occupation",
+        "zh": "佔領期間的自行車徵收",
+        "nl": "Fietsvordering tijdens de bezetting"
+      },
+      "narrative": {
+        "en": "Requisitioning turns the bicycle into a symbol of resistance and national identity.",
+        "zh": "徵收行動把自行車變成抵抗與民族認同的象徵。",
+        "nl": "De vordering maakt van de fiets een symbool van verzet en nationale identiteit."
+      },
+      "coordinates": [
+        51.921,
+        4.483
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-FORM-004",
+      "city": "rdam",
+      "decade": 1950,
+      "factor": "form",
+      "title": {
+        "en": "Basisplan reconstruction",
+        "zh": "Basisplan戰後重建",
+        "nl": "Wederopbouw volgens het Basisplan"
+      },
+      "narrative": {
+        "en": "Post-bombing rebuilding adopts a car-oriented modernist plan on cleared ground.",
+        "zh": "轟炸後的重建在清空的基地上，採用了以汽車為導向的現代主義計畫。",
+        "nl": "De wederopbouw na het bombardement volgt op geruimde grond een autogericht modernistisch plan."
+      },
+      "coordinates": [
+        51.92,
+        4.477
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-POLICY-002",
+      "city": "rdam",
+      "decade": 1960,
+      "factor": "policy",
+      "title": {
+        "en": "Ring road construction",
+        "zh": "環城道路興建",
+        "nl": "Aanleg van de ringweg"
+      },
+      "narrative": {
+        "en": "High-capacity roads are threaded through the reconstructed fabric north of the centre.",
+        "zh": "高容量道路被穿插進市中心以北、剛完成重建的城市紋理中。",
+        "nl": "Wegen met hoge capaciteit worden door het herbouwde weefsel ten noorden van het centrum geregen."
+      },
+      "coordinates": [
+        51.935,
+        4.464
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-MOVE-002",
+      "city": "rdam",
+      "decade": 1970,
+      "factor": "move",
+      "title": {
+        "en": "Stop de Kindermoord",
+        "zh": "Stop de Kindermoord：停止謀殺兒童",
+        "nl": "Stop de Kindermoord"
+      },
+      "narrative": {
+        "en": "Child traffic deaths trigger a national movement that permanently changes street design politics. Activists occupied junctions across the country; the photograph shows the Albert Cuypstraat crossing in Amsterdam, 15 December 1972.",
+        "zh": "兒童交通死亡事件引發全國性運動，永久改變了街道設計的政治。行動者在全國各地占領路口；照片記錄的是1972年12月15日阿姆斯特丹Albert Cuypstraat路口。",
+        "nl": "Verkeersdoden onder kinderen brengen een landelijke beweging op gang die de politiek van straatontwerp blijvend verandert. Actievoerders bezetten door het hele land kruispunten; de foto toont het kruispunt bij de Albert Cuypstraat in Amsterdam, 15 december 1972."
+      },
+      "coordinates": [
+        51.913,
+        4.49
+      ],
+      "source": {
+        "citation": "Rob Mieremet / Anefo, 15 December 1972. Nationaal Archief, Fotocollectie Anefo, bestanddeelnr. 926-1050.",
+        "archive": "Nationaal Archief, Fotocollectie Anefo",
+        "reference": "bestanddeelnr. 926-1050",
+        "url": "https://commons.wikimedia.org/wiki/File:Aktiegroep_Stop_kindermoord_bezet_kruispunt_bij_Albert_Cuypstraat_te_Amsterdam,_Bestanddeelnr_926-1050.jpg",
+        "verifiedBy": null,
+        "verifiedOn": "2026-08-18"
+      },
+      "image": {
+        "commons": "Aktiegroep Stop kindermoord bezet kruispunt bij Albert Cuypstraat te Amsterdam, Bestanddeelnr 926-1050.jpg",
+        "link": "https://commons.wikimedia.org/wiki/File:Aktiegroep_Stop_kindermoord_bezet_kruispunt_bij_Albert_Cuypstraat_te_Amsterdam,_Bestanddeelnr_926-1050.jpg",
+        "credit": "Rob Mieremet / Anefo · Nationaal Archief",
+        "rights": "CC0 1.0",
+        "rightsURI": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "cleared": true,
+        "warn": {
+          "en": "Image records Amsterdam, not Rotterdam",
+          "zh": "影像記錄的是阿姆斯特丹，而非鹿特丹",
+          "nl": "De foto toont Amsterdam, niet Rotterdam"
+        }
+      },
+      "placeholder": false
+    },
+    {
+      "id": "RDAM-POLICY-003",
+      "city": "rdam",
+      "decade": 1980,
+      "factor": "policy",
+      "title": {
+        "en": "Municipal Fietsplan",
+        "zh": "市政自行車計畫Fietsplan",
+        "nl": "Gemeentelijk Fietsplan"
+      },
+      "narrative": {
+        "en": "A city-wide plan converts scattered tracks into a coherent, mapped and signed network.",
+        "zh": "一份全市計畫把零散的車道整合成有地圖、有標示的完整路網。",
+        "nl": "Een stadsbreed plan maakt van losse paden een samenhangend netwerk met kaart en bewegwijzering."
+      },
+      "coordinates": [
+        51.925,
+        4.488
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-ALT-002",
+      "city": "rdam",
+      "decade": 1990,
+      "factor": "alt",
+      "title": {
+        "en": "Metro and bicycle parking integrated",
+        "zh": "地鐵與自行車停放整合",
+        "nl": "Metro en fietsparkeren geïntegreerd"
+      },
+      "narrative": {
+        "en": "Station-level parking makes the bicycle the first and last leg of much longer journeys.",
+        "zh": "車站層級的停放設施，讓自行車成為長程旅次的第一哩與最後一哩。",
+        "nl": "Stallingen bij de stations maken de fiets tot eerste en laatste schakel van veel langere reizen."
+      },
+      "coordinates": [
+        51.9246,
+        4.4696
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-CULT-002",
+      "city": "rdam",
+      "decade": 2000,
+      "factor": "cult",
+      "title": {
+        "en": "Cycling in city marketing",
+        "zh": "城市行銷中的自行車",
+        "nl": "Fietsen in de citymarketing"
+      },
+      "narrative": {
+        "en": "The bicycle is repositioned as an asset of a modern, liveable Rotterdam rather than a relic.",
+        "zh": "自行車被重新定位為現代宜居鹿特丹的資產，而非過去的殘留。",
+        "nl": "De fiets wordt niet langer als relikwie gezien, maar gepositioneerd als troef van een modern, leefbaar Rotterdam."
+      },
+      "coordinates": [
+        51.9195,
+        4.486
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-FORM-005",
+      "city": "rdam",
+      "decade": 2010,
+      "factor": "form",
+      "title": {
+        "en": "Luchtsingel and the Hofbogen",
+        "zh": "Luchtsingel與Hofbogen",
+        "nl": "Luchtsingel en de Hofbogen"
+      },
+      "narrative": {
+        "en": "Crowd-funded and re-used structures reconnect districts severed by post-war reconstruction.",
+        "zh": "群眾募資與再利用的構造物，把戰後重建切斷的街區重新縫合。",
+        "nl": "Crowdfunding en hergebruikte constructies verbinden wijken die door de wederopbouw waren doorsneden."
+      },
+      "coordinates": [
+        51.927,
+        4.474
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    },
+    {
+      "id": "RDAM-POLICY-004",
+      "city": "rdam",
+      "decade": 2020,
+      "factor": "policy",
+      "title": {
+        "en": "Rotterdam cycling vision",
+        "zh": "鹿特丹自行車願景",
+        "nl": "Rotterdamse fietsvisie"
+      },
+      "narrative": {
+        "en": "Targets shift from network length to comfort, equity, and school-age access across the river.",
+        "zh": "目標從路網長度，轉向舒適度、公平性，以及過河通學的可達性。",
+        "nl": "Doelen verschuiven van netwerklengte naar comfort, rechtvaardigheid en bereikbaarheid voor scholieren aan de overkant van de rivier."
+      },
+      "coordinates": [
+        51.9105,
+        4.4855
+      ],
+      "source": {
+        "citation": "[TO BE CONFIRMED]",
+        "archive": null,
+        "reference": null,
+        "url": null,
+        "verifiedBy": null,
+        "verifiedOn": null
+      },
+      "image": null,
+      "placeholder": true
+    }
+  ]
+}

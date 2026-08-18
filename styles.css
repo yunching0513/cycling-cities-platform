@@ -413,3 +413,42 @@ html:not([data-lang="zh"]) .contribute-shell h2{font-family:var(--en-serif);font
   .contribute-btn{padding:7px 9px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- provenance state (build-plan-ai.md §1.1) ---------- */
+/* Unconfirmed records must be visibly marked everywhere they appear. */
+.ph-flag{border:1px dashed var(--vermilion);background:var(--vermilion-l);padding:9px 11px;margin-bottom:10px;
+  font-family:var(--sans);font-size:10.5px;line-height:1.75;color:var(--graphite)}
+.ph-flag b{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--vermilion-d);margin-bottom:3px}
+.ok-flag{display:inline-flex;align-items:center;gap:5px;margin-bottom:10px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--graphite)}
+.ok-flag i{width:6px;height:6px;background:var(--graphite);display:block}
+.tbc{font-family:var(--mono);color:var(--vermilion-d);letter-spacing:.06em}
+.record.is-placeholder{border-style:dashed}
+.caveat{font-family:var(--mono)!important;font-size:10px!important;line-height:1.85!important;
+  color:var(--vermilion-d)!important}
+.source-table tr.row-ph td{color:var(--ash)}
+.source-table tr.row-ph td:first-child{border-left:2px solid var(--vermilion);padding-left:6px}
+.factor .ct b{color:var(--graphite);font-weight:500}
+.year-ticks span.dot{color:var(--mist)}
+.map-legend i.dot-ok{background:var(--graphite);border:1px solid var(--graphite)}
+.map-legend i.dot-ph{background:transparent;border:1px dashed var(--vermilion)}
+.notice-link{margin-left:6px;border:0;background:none;padding:0;cursor:pointer;
+  font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--vermilion);text-decoration:underline;text-underline-offset:2px}
+.notice-link:hover{color:var(--vermilion-d)}
+
+/* ---------- data load failure ---------- */
+#loadError{position:absolute;inset:var(--top) 0 0 0;z-index:1500;display:none;
+  align-items:center;justify-content:center;padding:24px;background:var(--paper)}
+#loadError.on{display:flex}
+.load-box{max-width:420px;border:1px solid var(--stone);border-left:3px solid var(--vermilion);
+  background:var(--paper-2);padding:22px}
+.load-box b{display:block;font-family:var(--serif);font-size:16px;font-weight:600;
+  letter-spacing:.06em;margin-bottom:8px}
+.load-box p{font-family:var(--sans);font-size:12.5px;line-height:1.9;color:var(--graphite);margin-bottom:10px}
+.load-box code{display:block;font-family:var(--mono);font-size:10px;color:var(--vermilion-d);
+  background:var(--paper);border:1px solid var(--mist);padding:8px 10px;margin-bottom:12px;word-break:break-all}
+.load-box button{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  padding:8px 14px;border:1px solid var(--vermilion);background:transparent;color:var(--vermilion);cursor:pointer}
+.load-box button:hover{background:var(--vermilion);color:var(--paper)}

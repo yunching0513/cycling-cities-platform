@@ -1,0 +1,565 @@
+{
+  "meta": {
+    "updated": "2026-08-19",
+    "note": "Structural reference data: decades, era labels, the five factors, city map configuration, network cities and era narratives."
+  },
+  "decades": [
+    1890,
+    1900,
+    1910,
+    1920,
+    1930,
+    1940,
+    1950,
+    1960,
+    1970,
+    1980,
+    1990,
+    2000,
+    2010,
+    2020
+  ],
+  "eras": {
+    "1890": {
+      "en": "The bicycle boom",
+      "zh": "單車熱潮",
+      "nl": "De fietsboom"
+    },
+    "1900": {
+      "en": "Paths and licences",
+      "zh": "路權與規費",
+      "nl": "Paden en vergunningen"
+    },
+    "1910": {
+      "en": "Streetcar city",
+      "zh": "電車城市",
+      "nl": "De tramstad"
+    },
+    "1920": {
+      "en": "Cars enter the street",
+      "zh": "汽車進場",
+      "nl": "De auto doet zijn intrede"
+    },
+    "1930": {
+      "en": "Depression and public works",
+      "zh": "蕭條與公共工程",
+      "nl": "Crisis en publieke werken"
+    },
+    "1940": {
+      "en": "Wartime rationing",
+      "zh": "戰時配給",
+      "nl": "Distributie in oorlogstijd"
+    },
+    "1950": {
+      "en": "Motorisation",
+      "zh": "汽車化",
+      "nl": "Motorisering"
+    },
+    "1960": {
+      "en": "Freeway era",
+      "zh": "高速公路時代",
+      "nl": "Het snelwegtijdperk"
+    },
+    "1970": {
+      "en": "Protest and oil crisis",
+      "zh": "抗爭與石油危機",
+      "nl": "Protest en oliecrisis"
+    },
+    "1980": {
+      "en": "Networks planned",
+      "zh": "網絡規劃",
+      "nl": "Netwerken op de tekentafel"
+    },
+    "1990": {
+      "en": "Corridors reclaimed",
+      "zh": "廊道再生",
+      "nl": "Corridors heroverd"
+    },
+    "2000": {
+      "en": "Revival",
+      "zh": "復甦",
+      "nl": "Herleving"
+    },
+    "2010": {
+      "en": "Systems and data",
+      "zh": "系統與資料",
+      "nl": "Systemen en data"
+    },
+    "2020": {
+      "en": "Reallocation",
+      "zh": "空間再分配",
+      "nl": "Herverdeling van ruimte"
+    }
+  },
+  "factors": [
+    {
+      "id": "form",
+      "c": "#C15F3C",
+      "n": "01",
+      "label": {
+        "en": "Urban form",
+        "zh": "城市型態",
+        "nl": "Stedelijke vorm"
+      },
+      "sub": {
+        "en": "Landscape, density, distance",
+        "zh": "地景、密度與騎乘距離",
+        "nl": "Landschap, dichtheid, afstand"
+      }
+    },
+    {
+      "id": "alt",
+      "c": "#5B7B7A",
+      "n": "02",
+      "label": {
+        "en": "Mobility alternatives",
+        "zh": "替代運具",
+        "nl": "Mobiliteitsalternatieven"
+      },
+      "sub": {
+        "en": "Walking, transit and the car",
+        "zh": "步行、公共運輸與汽車",
+        "nl": "Lopen, ov en de auto"
+      }
+    },
+    {
+      "id": "policy",
+      "c": "#8A7A4E",
+      "n": "03",
+      "label": {
+        "en": "Traffic policy",
+        "zh": "交通政策",
+        "nl": "Verkeersbeleid"
+      },
+      "sub": {
+        "en": "Rules, budgets, street space",
+        "zh": "法規、預算與空間分配",
+        "nl": "Regels, budgetten, straatruimte"
+      }
+    },
+    {
+      "id": "move",
+      "c": "#7A4B52",
+      "n": "04",
+      "label": {
+        "en": "Social movements",
+        "zh": "社會運動",
+        "nl": "Sociale bewegingen"
+      },
+      "sub": {
+        "en": "Advocacy, participation, civic action",
+        "zh": "倡議、參與與公民行動",
+        "nl": "Actie, participatie, burgerinitiatief"
+      }
+    },
+    {
+      "id": "cult",
+      "c": "#565347",
+      "n": "05",
+      "label": {
+        "en": "Cultural status",
+        "zh": "文化地位",
+        "nl": "Culturele status"
+      },
+      "sub": {
+        "en": "Identity, gender, everyday meaning",
+        "zh": "身分、性別與日常意義",
+        "nl": "Identiteit, gender, alledaagse betekenis"
+      }
+    }
+  ],
+  "splitColours": [
+    "#C15F3C",
+    "#565347",
+    "#5B7B7A",
+    "#BBB8AE"
+  ],
+  "cities": {
+    "mpls": {
+      "name": {
+        "en": "Minneapolis",
+        "zh": "明尼亞波利斯",
+        "nl": "Minneapolis"
+      },
+      "center": [
+        44.96,
+        -93.272
+      ],
+      "zoom": 13,
+      "hist": {
+        "kind": "xyz",
+        "url": "https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer/tile/{z}/{y}/{x}",
+        "label": {
+          "en": "USGS Topo (Esri) · scanned quadrangles",
+          "zh": "USGS Topo (Esri) · 掃描版地形圖",
+          "nl": "USGS Topo (Esri) · gescande kaartbladen"
+        },
+        "attr": "USGS / Esri, USA Topo Maps",
+        "minZoom": 8,
+        "maxZoom": 15
+      }
+    },
+    "rdam": {
+      "name": {
+        "en": "Rotterdam",
+        "zh": "鹿特丹",
+        "nl": "Rotterdam"
+      },
+      "center": [
+        51.9225,
+        4.479
+      ],
+      "zoom": 14,
+      "hist": {
+        "kind": "pmtiles",
+        "url": "https://yunching0513.github.io/Netherlands-historical-map/pmtiles/rotterdam-1900.pmtiles",
+        "label": {
+          "en": "Bonneblad 1900 · Kadaster / Topotijdreis",
+          "zh": "Bonneblad 1900 · Kadaster / Topotijdreis",
+          "nl": "Bonneblad 1900 · Kadaster / Topotijdreis"
+        },
+        "attr": "&copy; Kadaster, CC BY 4.0",
+        "minZoom": 12,
+        "maxZoom": 17,
+        "bounds": [
+          [
+            51.9045,
+            4.4512
+          ],
+          [
+            51.9405,
+            4.5072
+          ]
+        ]
+      }
+    }
+  },
+  "networkCities": [
+    {
+      "ll": [
+        44.9778,
+        -93.265
+      ],
+      "primary": true,
+      "name": {
+        "en": "Minneapolis",
+        "zh": "明尼亞波利斯",
+        "nl": "Minneapolis"
+      }
+    },
+    {
+      "ll": [
+        51.9244,
+        4.4777
+      ],
+      "primary": true,
+      "name": {
+        "en": "Rotterdam",
+        "zh": "鹿特丹",
+        "nl": "Rotterdam"
+      }
+    },
+    {
+      "ll": [
+        38.7223,
+        -9.1393
+      ],
+      "primary": false,
+      "name": {
+        "en": "Lisbon",
+        "zh": "里斯本",
+        "nl": "Lissabon"
+      }
+    },
+    {
+      "ll": [
+        47.4979,
+        19.0402
+      ],
+      "primary": false,
+      "name": {
+        "en": "Budapest",
+        "zh": "布達佩斯",
+        "nl": "Boedapest"
+      }
+    },
+    {
+      "ll": [
+        4.711,
+        -74.0721
+      ],
+      "primary": false,
+      "name": {
+        "en": "Bogotá",
+        "zh": "波哥大",
+        "nl": "Bogotá"
+      }
+    },
+    {
+      "ll": [
+        -26.2041,
+        28.0473
+      ],
+      "primary": false,
+      "name": {
+        "en": "Johannesburg",
+        "zh": "約翰尼斯堡",
+        "nl": "Johannesburg"
+      }
+    },
+    {
+      "ll": [
+        51.8985,
+        -8.4756
+      ],
+      "primary": false,
+      "name": {
+        "en": "Cork",
+        "zh": "科克",
+        "nl": "Cork"
+      }
+    },
+    {
+      "ll": [
+        48.1351,
+        11.582
+      ],
+      "primary": false,
+      "name": {
+        "en": "Munich",
+        "zh": "慕尼黑",
+        "nl": "München"
+      }
+    },
+    {
+      "ll": [
+        -1.2921,
+        36.8219
+      ],
+      "primary": false,
+      "name": {
+        "en": "Nairobi",
+        "zh": "奈洛比",
+        "nl": "Nairobi"
+      }
+    },
+    {
+      "ll": [
+        45.4642,
+        9.19
+      ],
+      "primary": false,
+      "name": {
+        "en": "Milan",
+        "zh": "米蘭",
+        "nl": "Milaan"
+      }
+    },
+    {
+      "ll": [
+        -6.7924,
+        39.2083
+      ],
+      "primary": false,
+      "name": {
+        "en": "Dar es Salaam",
+        "zh": "三蘭港",
+        "nl": "Dar es Salaam"
+      }
+    },
+    {
+      "ll": [
+        35.6892,
+        51.389
+      ],
+      "primary": false,
+      "name": {
+        "en": "Tehran",
+        "zh": "德黑蘭",
+        "nl": "Teheran"
+      }
+    }
+  ],
+  "stories": [
+    {
+      "from": 1890,
+      "to": 1900,
+      "factor": "cult",
+      "era": {
+        "en": "The boom and the first claims to the road",
+        "zh": "單車熱潮與早期路權",
+        "nl": "De boom en de eerste aanspraken op de weg"
+      },
+      "title": {
+        "en": "What the boom actually meant",
+        "zh": "熱潮真正改變了什麼",
+        "nl": "Wat de boom werkelijk betekende"
+      },
+      "body": {
+        "en": "The first cycling boom was at once a technical, commercial and status event. Who could buy a bicycle, and who was allowed to ride it, was never a neutral question.",
+        "zh": "第一波單車熱潮同時是技術、消費與社會地位的事件。誰買得起車、誰被允許上路，從一開始就不是中性的問題。",
+        "nl": "De eerste fietsboom was tegelijk een technische, commerciële en statusgebeurtenis. Wie een fiets kon kopen, en wie ermee de weg op mocht, was nooit een neutrale vraag."
+      }
+    },
+    {
+      "from": 1910,
+      "to": 1910,
+      "factor": "alt",
+      "era": {
+        "en": "Rail transit expands",
+        "zh": "軌道運輸擴張",
+        "nl": "Het railvervoer breidt uit"
+      },
+      "title": {
+        "en": "The city on rails",
+        "zh": "軌道上的城市",
+        "nl": "De stad op rails"
+      },
+      "body": {
+        "en": "Trams and suburban rail redefined commuting distance. In some cities the bicycle retreated to short local trips; in others it grew alongside the rails.",
+        "zh": "電車與市郊鐵路重新定義了通勤距離。在某些城市，自行車退為短程工具；在另一些城市，它與軌道一起成長。",
+        "nl": "Trams en voorstadsspoor herdefinieerden de woon-werkafstand. In sommige steden viel de fiets terug op korte ritten, in andere groeide zij mee met het spoor."
+      }
+    },
+    {
+      "from": 1920,
+      "to": 1940,
+      "factor": "form",
+      "era": {
+        "en": "The bicycle as everyday transport",
+        "zh": "自行車成為城市日常",
+        "nl": "De fiets als alledaags vervoer"
+      },
+      "title": {
+        "en": "The everyday radius changes",
+        "zh": "日常半徑正在改變",
+        "nl": "De alledaagse straal verandert"
+      },
+      "body": {
+        "en": "The bicycle enlarged the city that walking could reach. Distances for work, shopping and social life were redefined — and with them, ideas about who the street belonged to.",
+        "zh": "自行車把步行可及的城市放大了。工作、購物與社交的距離開始被重新定義，也改變了街道使用權的想像。",
+        "nl": "De fiets vergrootte de stad die te voet bereikbaar was. Afstanden voor werk, winkelen en sociaal leven werden opnieuw gedefinieerd — en daarmee ook de vraag van wie de straat eigenlijk is."
+      }
+    },
+    {
+      "from": 1950,
+      "to": 1950,
+      "factor": "alt",
+      "era": {
+        "en": "Reconstruction and competing modes",
+        "zh": "戰後重建與運具競合",
+        "nl": "Wederopbouw en concurrerende vervoerwijzen"
+      },
+      "title": {
+        "en": "The post-war city moves again",
+        "zh": "戰後城市重新移動",
+        "nl": "De naoorlogse stad komt weer in beweging"
+      },
+      "body": {
+        "en": "Bicycles, buses and walking carried dense everyday mobility together. How these modes competed and combined shaped the road decisions of the decades that followed.",
+        "zh": "自行車、公車與步行共同承擔高密度的日常移動；不同運具之間的競合，形塑了後續數十年的道路選擇。",
+        "nl": "Fiets, bus en lopen droegen samen de dichte dagelijkse mobiliteit. Hoe deze vervoerwijzen concurreerden en samenwerkten, bepaalde de wegkeuzes van de decennia daarna."
+      }
+    },
+    {
+      "from": 1960,
+      "to": 1960,
+      "factor": "policy",
+      "era": {
+        "en": "Motorisation and segregation",
+        "zh": "汽車化與交通分離",
+        "nl": "Motorisering en scheiding van verkeer"
+      },
+      "title": {
+        "en": "Speed redrew the street",
+        "zh": "速度重畫了街道",
+        "nl": "Snelheid tekende de straat opnieuw"
+      },
+      "body": {
+        "en": "Engineering built around car volume and efficiency became the norm. Cycling did not disappear, but it was pushed to the margins of policy, statistics and street space.",
+        "zh": "以汽車流量與效率為核心的工程規劃成為主流。自行車沒有消失，卻在政策、統計與道路空間中被推向邊緣。",
+        "nl": "Verkeerskunde rond autovolume en efficiëntie werd de norm. Fietsen verdween niet, maar werd naar de marge van beleid, statistiek en straatruimte gedrukt."
+      }
+    },
+    {
+      "from": 1970,
+      "to": 1980,
+      "factor": "move",
+      "era": {
+        "en": "Civic action and the street turn",
+        "zh": "公民行動與街道轉向",
+        "nl": "Burgeractie en de ommekeer in de straat"
+      },
+      "title": {
+        "en": "Who has a right to the street?",
+        "zh": "誰有權使用街道？",
+        "nl": "Wie heeft recht op de straat?"
+      },
+      "body": {
+        "en": "Road safety, children and the quality of everyday life returned street design to public debate. Movements showed that urban mobility was never bound to follow one fixed path.",
+        "zh": "交通安全、兒童與生活環境把道路問題帶回公共辯論。社會運動證明，城市移動並非只能沿著既定路徑前進。",
+        "nl": "Verkeersveiligheid, kinderen en de kwaliteit van het dagelijks leven brachten straatontwerp terug in het publieke debat. Bewegingen lieten zien dat stedelijke mobiliteit nooit één vast pad hoefde te volgen."
+      }
+    },
+    {
+      "from": 1990,
+      "to": 2000,
+      "factor": "form",
+      "era": {
+        "en": "Networks and regional integration",
+        "zh": "路網化與區域整合",
+        "nl": "Netwerken en regionale integratie"
+      },
+      "title": {
+        "en": "From single links to a network",
+        "zh": "從單一路段到網絡",
+        "nl": "Van losse schakels naar een netwerk"
+      },
+      "body": {
+        "en": "Cycling infrastructure came to be treated as a network problem: continuity, junctions and cross-district reach decide whether a lane is actually useful.",
+        "zh": "自行車設施逐步被視為網絡問題：連續性、節點接續與跨區可達性，決定一條車道是否真正有用。",
+        "nl": "Fietsinfrastructuur werd steeds meer als netwerkvraagstuk behandeld: continuïteit, knooppunten en bereik over wijkgrenzen bepalen of een fietspad echt bruikbaar is."
+      }
+    },
+    {
+      "from": 2010,
+      "to": 2010,
+      "factor": "cult",
+      "era": {
+        "en": "Shared systems and cultural repositioning",
+        "zh": "共享服務與文化再定位",
+        "nl": "Deelsystemen en culturele herpositionering"
+      },
+      "title": {
+        "en": "The bicycle becomes visible again",
+        "zh": "自行車再次變得可見",
+        "nl": "De fiets wordt weer zichtbaar"
+      },
+      "body": {
+        "en": "Bike share, design and city branding brought cycling back into mainstream view — and raised new questions about who can use it and whom it serves.",
+        "zh": "公共自行車、設計與城市品牌讓自行車重新進入主流視野，也引發誰能使用、為誰服務的新問題。",
+        "nl": "Deelfietsen, ontwerp en citybranding brachten fietsen terug in beeld — en riepen nieuwe vragen op over wie het kan gebruiken en wie ermee gediend is."
+      }
+    },
+    {
+      "from": 2020,
+      "to": 2020,
+      "factor": "alt",
+      "era": {
+        "en": "Multimodal and sustainable transition",
+        "zh": "多模態與永續轉型",
+        "nl": "Multimodale en duurzame transitie"
+      },
+      "title": {
+        "en": "Mobility becomes one system",
+        "zh": "移動系統走向整合",
+        "nl": "Mobiliteit wordt één systeem"
+      },
+      "body": {
+        "en": "Climate, health and equity mean cycling is no longer a single-mode policy but part of a wider transformation of walking, transit and public space.",
+        "zh": "氣候、健康與公平讓自行車不再是單一運具政策，而是步行、公共運輸與公共空間轉型的一部分。",
+        "nl": "Klimaat, gezondheid en rechtvaardigheid maken van fietsen geen apart vervoersbeleid meer, maar onderdeel van een bredere transformatie van lopen, ov en openbare ruimte."
+      }
+    }
+  ]
+}

@@ -43,6 +43,7 @@
     </header>
 
     <div id="map"></div>
+    <div id="loadError" role="alert"></div>
     <div id="divider"><span class="lbl l" id="dvL"></span><span class="lbl r" id="dvR"></span></div>
 
     <div class="map-tools">
@@ -59,7 +60,8 @@
 
     <div class="prototype-notice" id="notice" role="note">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
-      <p><b id="noticeTitle"></b><span id="noticeBody"></span></p>
+      <p><b id="noticeTitle"></b><span id="noticeBody"></span>
+        <button type="button" id="noticeLink" class="notice-link"></button></p>
       <button type="button" id="noticeClose">&times;</button>
     </div>
 
@@ -131,6 +133,7 @@
       <div class="section-label" id="sl6"><span class="num">06</span><span class="txt"></span><span class="en"></span></div>
       <div class="record" id="record"></div>
       <button class="rec-more" id="sourcesBtn" type="button"></button>
+      <button class="rec-more" id="statusBtn" type="button"></button>
 
       <div class="section-label" id="sl7"><span class="num">07</span><span class="txt"></span><span class="en"></span></div>
       <div class="base-pills">
@@ -196,7 +199,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script src="https://yunching0513.github.io/Netherlands-historical-map/vendor/pmtiles.js"></script>
     <script src="./i18n.js"></script>
-    <script src="./data.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
