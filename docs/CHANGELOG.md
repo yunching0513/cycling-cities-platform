@@ -4,6 +4,60 @@
 
 ---
 
+## 2026-08-19：分享縮圖（Open Graph share card）
+
+### 需求
+
+連結分享給研究團隊時沒有預覽縮圖，Slack與電子郵件只會顯示裸網址。此次補上分享卡與網站圖示。
+
+### 新增檔案
+
+| 檔案 | 用途 |
+|---|---|
+| `assets/og-cycling-cities.png` | 分享縮圖，1200x630，237KB |
+| `assets/og-card.source.html` | 縮圖原始檔，改版後重新輸出即可 |
+| `assets/favicon.svg` | 瀏覽器分頁圖示 |
+| `assets/apple-touch-icon.png` | iOS加入主畫面圖示，180x180 |
+
+縮圖以無頭Chrome於2倍解析度算圖後縮放至1200x630。重新輸出的指令：
+
+```
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new \
+  --force-device-scale-factor=2 --window-size=1200,630 --virtual-time-budget=12000 \
+  --screenshot=card@2x.png file://<path>/og-card.source.html
+sips -z 630 1200 card@2x.png --out og-cycling-cities.png
+```
+
+### 縮圖內容與資料來源
+
+依§1.1，卡片上每個數字都來自現有資料檔，未新增任何未查證陳述：
+
+| 卡片文字 | 來源 |
+|---|---|
+| Minneapolis / Rotterdam | `data/reference.json` cities |
+| 1890-2020 | `data/reference.json` decades首末值 |
+| 31 site records | `data/sites.json` meta.total |
+| 4 with verified sources | `data/sites.json` meta.verified |
+| Concept prototype | `i18n.js` en.noticeTitle |
+
+卡片刻意把「概念原型」與「31筆中4筆已查證」放進版面，而不是只放標題：連結被轉寄出去時，資料狀態要跟著一起走，不能讓收件者以為這是已完成的研究成果。
+
+視覺沿用既有設計系統：紙米`#F1EFE9`、朱紅`#C15F3C`、墨`#1F1D19`，EB Garamond標題與JetBrains Mono註記，直角、1px細線、顆粒紋理。底部同時放實心與虛線圓點，對應地圖上「已查證」與「待確認」兩種標記。未使用任何外部影像，避免§1.1的授權問題。
+
+### index.html的head變更
+
+- 新增`og:`與`twitter:`系列標籤、`canonical`、`theme-color`、圖示連結
+- `description`改寫：原文為「an interactive research atlas...」，未說明原型狀態。改為「Concept prototype: 31 site records, 4 with verified sources.」以符合§1.1「禁止把【待驗證】內容寫成事實」
+- `title`改為`Cycling Cities Tool 2: The Digital Experience`，與計畫§1的專案定名一致
+- 新增`robots: noindex, nofollow`。理由：build-plan-human.md要求原型在研究團隊審閱前不對外公開，此標籤可避免被搜尋引擎收錄；連結預覽讀的是og標籤而非robots，因此分享給團隊不受影響。研究團隊確認可公開後移除此行即可
+
+### 待辦與已知落差
+
+- `i18n.js`的`brandSub`為`The Global Experience`，但頁面標題與計畫§1為`The Digital Experience`。兩者指涉不同層級（整體計畫／Tool 2），此次未更動，待Wu確認何者為介面應顯示者
+- 縮圖數字寫死於圖片內。`data/sites.json`的已查證筆數變動時，需重新輸出`og-cycling-cities.png`
+
+---
+
 ## 2026-08-19：v2.0
 
 對應計畫工作項目：T1、T2、T3、T4（P0），T7、T8（P1，提前完成）

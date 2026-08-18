@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#F1EFE9; --paper-2:#EAE8E2; --mist:#D6D3CB; --stone:#BBB8AE;
+    --ash:#807C73; --graphite:#565347; --ink:#1F1D19; --vermilion:#C15F3C;
+    --en-serif:'EB Garamond',Georgia,serif;
+    --mono:'JetBrains Mono','Courier New',monospace;
+    --sans:'Noto Sans TC',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1200px;height:630px}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+       font-weight:300;overflow:hidden;position:relative}
+
+  /* paper grain, same recipe as the site */
+  .grain{position:absolute;inset:0;pointer-events:none;z-index:6;opacity:.45;
+    background-image:radial-gradient(var(--stone) .5px,transparent .5px);
+    background-size:4px 4px;mix-blend-mode:multiply}
+
+  /* oversized brand glyph bleeding off the right edge */
+  .watermark{position:absolute;right:-18px;top:106px;width:492px;height:492px;z-index:1;opacity:.17}
+  .watermark svg{width:100%;height:100%;fill:none;stroke:var(--graphite);
+    stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
+
+  .frame{position:absolute;inset:40px;border:1px solid var(--stone);z-index:2}
+
+  .sheet{position:absolute;inset:40px;z-index:5;padding:48px 60px 44px;
+         display:flex;flex-direction:column}
+
+  /* ---------- brand lockup ---------- */
+  .brand{display:flex;align-items:center;gap:16px}
+  .brand svg{width:54px;height:54px;fill:none;stroke:var(--ink);
+    stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .brand b{font-family:var(--en-serif);font-size:36px;font-weight:500;letter-spacing:.005em}
+  .tool{margin-left:6px;font-family:var(--mono);font-size:13px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--paper);background:var(--vermilion);
+    padding:6px 11px 5px;align-self:center}
+
+  /* ---------- display block ---------- */
+  .mid{margin-top:auto}
+  h1{font-family:var(--en-serif);font-weight:500;font-size:82px;line-height:1.03;
+     letter-spacing:-.005em;color:var(--ink)}
+  .rule{width:96px;height:2px;background:var(--vermilion);margin:22px 0 19px}
+  .lead{font-family:var(--en-serif);font-style:italic;font-size:29px;line-height:1.34;
+        color:var(--graphite);max-width:700px}
+  .where{margin-top:20px;font-family:var(--mono);font-size:17px;letter-spacing:.14em;
+         text-transform:uppercase;color:var(--vermilion)}
+
+  /* ---------- decade ruler ---------- */
+  .ruler{margin-top:26px;display:flex;align-items:flex-end;gap:0;height:26px;
+         border-bottom:1px solid var(--stone);width:640px}
+  .ruler i{flex:1;height:9px;border-left:1px solid var(--stone);display:block}
+  .ruler i.major{height:20px;border-left:1px solid var(--ash)}
+  .ruler i.last{border-left:2px solid var(--vermilion);height:26px}
+
+  /* ---------- honest status foot ---------- */
+  .foot{margin-top:22px;display:flex;align-items:center;gap:14px;
+        border-top:1px solid var(--stone);padding-top:18px}
+  .dot{width:15px;height:15px;border:1.5px dashed var(--vermilion);
+       border-radius:50%;background:var(--paper);flex:0 0 auto}
+  .dot.solid{border:1.5px solid var(--vermilion);background:var(--vermilion)}
+  .foot span{font-family:var(--mono);font-size:14px;letter-spacing:.1em;
+             text-transform:uppercase;color:var(--ash)}
+  .foot em{font-style:normal;color:var(--graphite)}
+</style>
+</head>
+<body>
+  <div class="watermark" aria-hidden="true">
+    <svg viewBox="0 0 38 38"><circle cx="11" cy="26" r="6.5"/><circle cx="28" cy="26" r="6.5"/><path d="M11 26l6-13 5 13m-11 0h11l6-12h-8l8 12M15 9h5"/></svg>
+  </div>
+  <div class="frame"></div>
+
+  <div class="sheet">
+    <div class="brand">
+      <svg viewBox="0 0 38 38" aria-hidden="true"><circle cx="11" cy="26" r="6.5"/><circle cx="28" cy="26" r="6.5"/><path d="M11 26l6-13 5 13m-11 0h11l6-12h-8l8 12M15 9h5"/></svg>
+      <b>Cycling Cities</b>
+      <span class="tool">Tool 2</span>
+    </div>
+
+    <div class="mid">
+      <h1>The Digital<br>Experience</h1>
+      <div class="rule"></div>
+      <p class="lead">An interactive historical atlas of a century of urban mobility.</p>
+      <p class="where">Minneapolis / Rotterdam &middot; 1890&ndash;2020</p>
+
+      <div class="ruler" aria-hidden="true">
+        <i class="major"></i><i></i><i></i><i></i><i></i>
+        <i class="major"></i><i></i><i></i><i></i><i></i>
+        <i class="major"></i><i></i><i></i><i class="last"></i>
+      </div>
+
+      <div class="foot">
+        <span class="dot solid" aria-hidden="true"></span>
+        <span class="dot" aria-hidden="true"></span>
+        <span>Concept prototype &middot; 31 site records &middot; <em>4 with verified sources</em></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grain"></div>
+</body>
+</html>

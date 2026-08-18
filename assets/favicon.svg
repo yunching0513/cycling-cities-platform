@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 38" role="img" aria-label="Cycling Cities">
+  <rect width="38" height="38" fill="#C15F3C"/>
+  <g fill="none" stroke="#F1EFE9" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="25" r="7"/>
+    <circle cx="27" cy="25" r="7"/>
+    <path d="M11 25l6-12 5 12m-11 0h11l6-11h-7M15 9h5"/>
+  </g>
+</svg>
