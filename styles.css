@@ -393,26 +393,7 @@ html:not([data-lang="zh"]) .contribute-shell h2{font-family:var(--en-serif);font
   border-color:var(--mist)!important}
 .leaflet-bar a:hover{background:var(--paper-2)!important;color:var(--vermilion)!important}
 
-/* ---------- responsive ---------- */
-@media(max-width:1080px){
-  .primary-nav{display:none}
-  .menu-btn{display:grid}
-}
-@media(max-width:760px){
-  :root{--top:48px}
-  .panel{top:auto;left:0;right:0;bottom:0;width:100%;max-width:100%;max-height:62vh;
-    border-left:0;border-right:0;border-bottom:0;
-    padding:18px 18px calc(env(safe-area-inset-bottom,0px) + 14px)}
-  .panel.collapsed{max-height:56px;overflow:hidden}
-  .year-big{font-size:36px}
-  #divider .lbl{top:10px}
-  .map-bottom-left{display:none}
-  .prototype-notice{max-width:calc(100vw - 32px)}
-  .brand small{display:none}
-  .contribute-btn span{display:none}
-  .contribute-btn{padding:7px 9px}
-}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
 
 /* ---------- provenance state (build-plan-ai.md §1.1) ---------- */
 /* Unconfirmed records must be visibly marked everywhere they appear. */
@@ -452,3 +433,98 @@ html:not([data-lang="zh"]) .contribute-shell h2{font-family:var(--en-serif);font
 .load-box button{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
   padding:8px 14px;border:1px solid var(--vermilion);background:transparent;color:var(--vermilion);cursor:pointer}
 .load-box button:hover{background:var(--vermilion);color:var(--paper)}
+
+/* ---------- bottom sheet (mobile only; inert on desktop) ---------- */
+.sheet-head{display:none}
+.nav-slot:empty,.sheet-slot:empty{display:none}
+.panel-body{display:contents}
+
+/* ---------- responsive ---------- */
+@media(max-width:760px){
+  :root{--top:48px}
+  .primary-nav{display:none}
+  .menu-btn{display:grid}
+
+  /* thumb-sized controls throughout */
+  .icon-btn{width:38px;height:38px}
+  .icon-btn svg{width:17px;height:17px}
+  .contribute-btn{padding:10px 11px}
+  .contribute-btn span{display:none}
+  .brand small{display:none}
+  .prototype-notice{left:12px;right:12px;max-width:none}
+  #noticeClose{width:30px;height:30px;font-size:19px;flex:0 0 30px}
+  .prototype-notice{padding:9px 10px}
+  .prototype-notice p{font-size:11.5px}
+  .lang-switch button{padding:8px 11px;font-size:10.5px}
+  .factor{min-height:46px}
+  .base-pill{padding:12px 3px}
+  .rec-more{padding:12px}
+  .play-btn{width:38px;height:38px;flex:0 0 38px}
+  .play-btn svg{width:16px;height:16px}
+  .panel-actions button{padding:12px 8px}
+  .drawer-head button{width:38px;height:38px;display:grid;place-items:center}
+  .prototype-notice .notice-link{padding:7px 0;display:inline-block}
+  #allFactors{padding:10px 0 10px 10px}
+  input[type=range]{height:34px}
+  input[type=range]::-webkit-slider-thumb{width:22px;height:22px;margin-top:-10px}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px}
+  .year-ticks span{padding:11px 3px;min-width:26px;text-align:center}
+  .year-ticks span.dot{min-width:14px;padding-left:0;padding-right:0}
+
+  /* zoom controls move to the bottom right, above the sheet, within thumb reach */
+  .map-tools{left:auto;right:12px;top:auto;
+    bottom:calc(var(--sheet-h, 40vh) + 12px);transition:bottom .28s cubic-bezier(.4,0,.2,1)}
+  .map-bottom-left{display:none}
+
+  /* the panel becomes a draggable bottom sheet */
+  .panel{top:auto;left:0;right:0;bottom:0;width:100%;max-width:100%;
+    height:var(--sheet-h,40vh);max-height:none;overflow:hidden;padding:0;
+    border-left:0;border-right:0;border-bottom:0;display:flex;flex-direction:column;
+    transition:height .28s cubic-bezier(.4,0,.2,1)}
+  .panel.dragging{transition:none}
+
+  .sheet-head{display:block;flex:0 0 auto;padding:0 16px 10px;
+    background:var(--paper-2);border-bottom:1px solid var(--mist)}
+  .sheet-grip{display:block;width:100%;padding:15px 0 11px;border:0;background:none;
+    cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent}
+  .sheet-grip span{display:block;width:44px;height:4px;margin:0 auto;background:var(--stone);border-radius:2px}
+  .sheet-grip:active{cursor:grabbing}
+  .sheet-grip:active span,.panel.dragging .sheet-grip span{background:var(--vermilion)}
+  .sheet-context{display:flex;align-items:baseline;gap:8px;padding-bottom:8px;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ash)}
+  .sheet-context b{font-family:var(--serif);font-size:13px;font-weight:600;letter-spacing:.06em;
+    text-transform:none;color:var(--ink)}
+  html:not([data-lang="zh"]) .sheet-context b{font-family:var(--en-serif);font-weight:500;font-size:15px}
+  .sheet-context i{margin-left:auto;font-family:var(--en-serif);font-style:italic;
+    font-size:11px;text-transform:none;letter-spacing:0;color:var(--vermilion)}
+  .sheet-slot{display:block}
+  .sheet-slot .year-display{margin:2px 0 0}
+  .sheet-slot .year-big{font-size:30px}
+  .sheet-slot .year-era{font-size:11px;padding-bottom:3px}
+  .sheet-slot .year-era .sub{display:none}
+  .sheet-slot input[type=range]{margin:0}
+  .sheet-slot .year-ticks{margin-top:-4px}
+
+  .panel-body{display:block;flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 20px)}
+  .panel.sheet-peek .panel-body{overflow:hidden}
+
+  /* section 02 label is redundant once the decade block sits in the sheet header */
+  #sl2{display:none}
+
+  .nav-slot{display:flex;gap:5px;overflow-x:auto;margin:14px -16px 0;padding:0 16px 2px;
+    scrollbar-width:none}
+  .nav-slot::-webkit-scrollbar{display:none}
+  .nav-slot .primary-nav{display:flex;gap:5px}
+  .nav-slot .nav-item{flex:0 0 auto;padding:9px 13px;border-color:var(--mist);
+    background:var(--paper);font-size:12.5px}
+  .nav-slot .nav-item.active{border-color:var(--vermilion);background:var(--vermilion-l);color:var(--vermilion)}
+
+  #divider{top:var(--top)}
+  #divider .lbl{top:10px}
+  .drawer{width:100%}
+  .search-field input{font-size:16px}
+  .contribute-shell{padding:26px 20px 20px;max-height:86vh;overflow-y:auto}
+  .search-results{max-height:60vh}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

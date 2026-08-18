@@ -22,7 +22,8 @@ const state = {
   swipeOn: false,
   splitPct: .5,
   histOpa: .85,
-  playing: false
+  playing: false,
+  sheet: 'half'
 };
 
 /* filled by loadData() */
@@ -187,6 +188,91 @@ function bindDividerDrag() {
   const end = e => { if (dragging) { dragging = false; map.dragging.enable(); try { d.releasePointerCapture(e.pointerId); } catch (err) {} } };
   d.addEventListener('pointerup', end);
   d.addEventListener('pointercancel', end);
+}
+
+
+/* ---------- bottom sheet (mobile) ----------
+   The map is the point of this tool, so on a phone the panel behaves as a sheet with
+   three heights. `peek` keeps the decade scrubber and the current-view line on screen
+   while leaving most of the map visible; `half` is for browsing; `full` for reading. */
+const mq = matchMedia('(max-width: 760px)');
+const SHEET_MODES = ['peek', 'half', 'full'];
+const homes = new WeakMap();
+let sheetMoved = false;
+
+function rememberHome(el) { if (el && !homes.has(el)) homes.set(el, [el.parentNode, el.nextSibling]); }
+function sheetHeights() {
+  const head = $('#sheetHead').offsetHeight || 120;
+  const top = $('.topbar').offsetHeight;
+  return { peek: head + 1, half: Math.round(innerHeight * .46), full: innerHeight - top - 8 };
+}
+function setSheetVar(px) { document.documentElement.style.setProperty('--sheet-h', px + 'px'); }
+function setSheet(mode, { animate = true } = {}) {
+  if (!mq.matches) return;
+  state.sheet = mode;
+  const panel = $('#panel');
+  SHEET_MODES.forEach(m => panel.classList.toggle('sheet-' + m, m === mode));
+  if (!animate) panel.classList.add('dragging');
+  setSheetVar(sheetHeights()[mode]);
+  clearTimeout(setSheet.timer);
+  setSheet.timer = setTimeout(() => {
+    panel.classList.remove('dragging');
+    if (map) map.invalidateSize();
+  }, animate ? 300 : 20);
+}
+function cycleSheet() {
+  const next = SHEET_MODES[(SHEET_MODES.indexOf(state.sheet) + 1) % SHEET_MODES.length];
+  setSheet(next);
+}
+function bindSheetDrag() {
+  const grip = $('#sheetGrip'), panel = $('#panel');
+  let dragging = false, startY = 0, startH = 0;
+  grip.addEventListener('pointerdown', e => {
+    if (!mq.matches) return;
+    dragging = true; sheetMoved = false;
+    startY = e.clientY; startH = panel.offsetHeight;
+    panel.classList.add('dragging');
+    try { grip.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  });
+  grip.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    if (Math.abs(e.clientY - startY) > 6) sheetMoved = true;
+    const h = sheetHeights();
+    setSheetVar(Math.min(h.full, Math.max(h.peek, startH - (e.clientY - startY))));
+  });
+  const end = e => {
+    if (!dragging) return;
+    dragging = false;
+    try { grip.releasePointerCapture(e.pointerId); } catch (err) {}
+    const h = sheetHeights(), now = panel.offsetHeight;
+    /* snap to whichever of the three heights the drag ended closest to */
+    const nearest = SHEET_MODES.reduce((a, b) => Math.abs(h[b] - now) < Math.abs(h[a] - now) ? b : a);
+    setSheet(nearest);
+  };
+  grip.addEventListener('pointerup', end);
+  grip.addEventListener('pointercancel', end);
+  grip.addEventListener('click', () => { if (mq.matches && !sheetMoved) cycleSheet(); });
+}
+function applyLayout() {
+  const nav = $('.primary-nav'), dec = $('#decadeBlock');
+  rememberHome(nav); rememberHome(dec);
+  if (mq.matches) {
+    $('#sheetSlot').appendChild(dec);
+    $('#navSlot').appendChild(nav);
+    setSheet(state.sheet, { animate: false });
+  } else {
+    [nav, dec].forEach(el => { const [parent, next] = homes.get(el); parent.insertBefore(el, next); });
+    document.documentElement.style.removeProperty('--sheet-h');
+    $('#panel').classList.remove('dragging', ...SHEET_MODES.map(m => 'sheet-' + m));
+  }
+  if (map) setTimeout(() => map.invalidateSize(), 90);
+}
+function renderSheetContext() {
+  const t = T();
+  const title = state.global ? t.mapGlobalTitle : state.compare ? t.mapCompareTitle : cityName(state.city);
+  const ok = verifiedCount();
+  $('#sheetContext').innerHTML = `<b>${title}</b><i>${ok} / ${SITES.length} ${t.verifiedFlag}</i>`;
 }
 
 /* ---------- render ---------- */
@@ -356,7 +442,7 @@ function render() {
     const s = siteById(state.sel);
     if (!s || !shownSites().includes(s)) state.sel = null;
   }
-  renderYear(); renderFactors(); renderPins(); renderRecord(); renderSplit(); renderMapCard();
+  renderYear(); renderFactors(); renderPins(); renderRecord(); renderSplit(); renderMapCard(); renderSheetContext();
   $$('.city-chip').forEach(b => b.classList.toggle('active', b.dataset.city === state.city && !state.compare && !state.global));
   $('#compareBtn').classList.toggle('active', state.compare);
   $('#globalBtn').classList.toggle('active', state.global);
@@ -370,7 +456,17 @@ function storyAt(y) { return STORIES.find(s => y >= s.from && y <= s.to) || STOR
 function selectSite(id) {
   state.sel = id;
   renderRecord(); renderPins();
-  $('#record').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (mq.matches && state.sheet === 'peek') setSheet('half');
+  setTimeout(() => revealRecord(), mq.matches ? 340 : 0);
+}
+/* bring the record card to the top of whichever element is doing the scrolling.
+   offsetTop is measured against .panel, not the scroll container, so use rect deltas. */
+function revealRecord() {
+  const body = mq.matches ? $('#panelBody') : $('#panel');
+  const label = $('#sl6');
+  if (!body || !label) return;
+  const delta = label.getBoundingClientRect().top - body.getBoundingClientRect().top;
+  body.scrollTo({ top: body.scrollTop + delta - 8 });
 }
 function selectCity(id, { fly = true } = {}) {
   state.city = id; state.compare = false; state.global = false; state.sel = null;
@@ -585,6 +681,7 @@ function applyLang() {
     b.innerHTML = cityName(k) + (state.lang === 'en' ? '' : `<span class="en">${CITIES[k].name.en}</span>`);
   });
   $('#swapBtn').setAttribute('aria-label', t.swap);
+  $('#sheetGrip').setAttribute('aria-label', t.sheetLabel);
   $('#compareBtn').querySelector('.t').textContent = t.compareTitle;
   $('#compareBtn').querySelector('.sub').textContent = t.compareSub;
   $('#globalBtn').querySelector('.t').textContent = t.globalTitle;
@@ -689,7 +786,7 @@ function bindEvents() {
   $('#searchInput').addEventListener('input', e => runSearch(e.target.value));
   $('#contribBtn').onclick = () => $('#contribDialog').showModal();
   $('#contribClose').onclick = () => $('#contribDialog').close();
-  $('#menuBtn').onclick = () => $('#panel').classList.toggle('collapsed');
+  $('#menuBtn').onclick = () => mq.matches ? cycleSheet() : $('#panel').scrollTo({ top: 0, behavior: 'smooth' });
 
   $('#shareBtn').onclick = async () => {
     syncUrl();
@@ -713,6 +810,9 @@ function bindEvents() {
   $('#searchDialog').addEventListener('click', e => { if (e.target.id === 'searchDialog') $('#searchDialog').close(); });
   $('#contribDialog').addEventListener('click', e => { if (e.target.id === 'contribDialog') $('#contribDialog').close(); });
   bindDividerDrag();
+  bindSheetDrag();
+  mq.addEventListener('change', applyLayout);
+  addEventListener('resize', () => { if (mq.matches) setSheet(state.sheet, { animate: false }); });
 }
 
 /* ---------- boot ---------- */
@@ -722,6 +822,7 @@ loadData().then(() => {
   $('#yearRange').value = state.di;
   positionDivider();
   bindEvents();
+  applyLayout();
   applyLang();
   document.body.classList.add('ready');
   setTimeout(() => map.invalidateSize(), 60);

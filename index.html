@@ -75,12 +75,19 @@
     </div>
 
     <div class="panel" id="panel">
+      <div class="sheet-head" id="sheetHead">
+        <button class="sheet-grip" id="sheetGrip" type="button"><span></span></button>
+        <div class="sheet-context" id="sheetContext"></div>
+        <div class="sheet-slot" id="sheetSlot"></div>
+      </div>
+      <div class="panel-body" id="panelBody">
       <div class="panel-head">
         <div class="lang-switch" id="langSwitch"></div>
         <div class="head-en" id="headEyebrow"></div>
         <div class="head-zh" id="headTitle"></div>
         <div class="head-meta" id="headMeta"></div>
       </div>
+      <div class="nav-slot" id="navSlot"></div>
 
       <div class="section-label" id="sl1"><span class="num">01</span><span class="txt"></span><span class="en"></span></div>
       <div class="city-row">
@@ -98,16 +105,19 @@
       </button>
 
       <div class="section-label" id="sl2"><span class="num">02</span><span class="txt"></span><span class="en"></span></div>
-      <div class="year-display">
-        <div class="year-big" id="yearBig">1890</div>
-        <div class="year-era" id="yearEra"></div>
-        <button class="play-btn" id="playBtn" type="button">
-          <svg class="play-icon" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg>
-          <svg class="pause-icon" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
-        </button>
+      <div id="decadeHome"></div>
+      <div id="decadeBlock">
+        <div class="year-display">
+          <div class="year-big" id="yearBig">1890</div>
+          <div class="year-era" id="yearEra"></div>
+          <button class="play-btn" id="playBtn" type="button">
+            <svg class="play-icon" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></svg>
+            <svg class="pause-icon" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+          </button>
+        </div>
+        <input type="range" id="yearRange" min="0" max="13" step="1" value="0" aria-label="Decade" />
+        <div class="year-ticks" id="yearTicks"></div>
       </div>
-      <input type="range" id="yearRange" min="0" max="13" step="1" value="0" aria-label="Decade" />
-      <div class="year-ticks" id="yearTicks"></div>
 
       <div class="section-label" id="sl3"><span class="num">03</span><span class="txt"></span><span class="en"></span></div>
       <button class="btn" id="histBtn" type="button"><span class="dot"></span><span class="t"></span><span class="en"></span></button>
@@ -156,6 +166,7 @@
       <div class="panel-foot">
         <span id="footText"></span>
         <div class="flagline" id="flagText"></div>
+      </div>
       </div>
     </div>
 

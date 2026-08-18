@@ -112,6 +112,7 @@ const UI = {
     loadError: 'Could not load the research data',
     loadErrorHint: 'The files under /data must be served over HTTP. Open the site through a web server rather than from the filesystem.',
     retry: 'Retry',
+    sheetLabel: 'Panel height',
     foot: 'Basemap © OpenStreetMap contributors, © CARTO.<br>Rotterdam historical map © Kadaster / Topotijdreis, CC BY 4.0 (PMTiles baked by the Netherlands-historical-map project).<br>Minneapolis historical map © USGS / Esri, USA Topo Maps.',
     flag: 'Site content is placeholder · interface review only'
   },
@@ -216,6 +217,7 @@ const UI = {
     loadError: '無法載入研究資料',
     loadErrorHint: '/data底下的檔案必須透過HTTP提供。請以網站伺服器開啟，不要直接從檔案系統開啟。',
     retry: '重試',
+    sheetLabel: '面板高度',
     foot: '底圖 © OpenStreetMap contributors · © CARTO。<br>鹿特丹歷史地形圖 © Kadaster / Topotijdreis, CC BY 4.0（PMTiles由Netherlands-historical-map專案烘製）。<br>明尼亞波利斯歷史地形圖 © USGS / Esri, USA Topo Maps。',
     flag: 'Site content is placeholder · interface review only'
   },
@@ -320,6 +322,7 @@ const UI = {
     loadError: 'De onderzoeksgegevens konden niet worden geladen',
     loadErrorHint: 'De bestanden onder /data moeten via HTTP worden aangeboden. Open de site via een webserver en niet vanaf het bestandssysteem.',
     retry: 'Opnieuw proberen',
+    sheetLabel: 'Paneelhoogte',
     foot: 'Ondergrond © OpenStreetMap-bijdragers, © CARTO.<br>Historische kaart Rotterdam © Kadaster / Topotijdreis, CC BY 4.0 (PMTiles gebakken door het project Netherlands-historical-map).<br>Historische kaart Minneapolis © USGS / Esri, USA Topo Maps.',
     flag: 'Site content is placeholder · interface review only'
   }
