@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Cycling Cities：以互動地圖探索一百年的城市移動、政策與自行車文化。" />
+    <title>Cycling Cities — 城市如何開始騎車？</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Cycling Cities 首頁">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 38 38" fill="none">
+              <circle cx="11" cy="26" r="6.5" />
+              <circle cx="28" cy="26" r="6.5" />
+              <path d="M11 26l6-13 5 13m-11 0h11l6-12h-8l8 12M15 9h5" />
+            </svg>
+          </span>
+          <span>
+            <strong>Cycling Cities</strong>
+            <small>The Global Experience</small>
+          </span>
+        </a>
+
+        <nav class="primary-nav" aria-label="主要導覽">
+          <button class="nav-item active" data-view="map">探索地圖</button>
+          <button class="nav-item" data-view="compare">比較城市</button>
+          <button class="nav-item" data-view="stories">研究故事</button>
+          <button class="nav-item" data-view="method">資料與方法</button>
+        </nav>
+
+        <div class="top-actions">
+          <button class="icon-button search-trigger" type="button" aria-label="搜尋">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          </button>
+          <button class="contribute-button" type="button" data-open-contribute>
+            <span>參與共筆</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <button class="mobile-menu" type="button" aria-label="開啟選單">
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="control-panel" aria-label="地圖控制">
+          <div class="panel-scroll">
+            <section class="intro-block">
+              <div class="eyebrow-row">
+                <span class="eyebrow">Digital research atlas</span>
+                <button class="info-dot" type="button" aria-label="關於原型資料">i</button>
+              </div>
+              <h1>城市如何<br />開始騎車？</h1>
+              <p>沿著政策、街道與人的記憶，探索一百年來自行車在城市中的興衰。</p>
+            </section>
+
+            <section class="panel-section city-section">
+              <div class="section-heading">
+                <h2>選擇城市</h2>
+                <span class="section-count">12 座示範城市</span>
+              </div>
+              <div class="city-switcher" role="group" aria-label="主要城市">
+                <button class="city-chip active" data-city="minneapolis">
+                  <span class="city-dot minneapolis"></span>
+                  <span><b>明尼亞波利斯</b><small>Minneapolis</small></span>
+                </button>
+                <button class="swap-city" type="button" aria-label="交換城市">
+                  <svg viewBox="0 0 24 24"><path d="m8 7-3 3 3 3M5 10h13M16 17l3-3-3-3M19 14H6"/></svg>
+                </button>
+                <button class="city-chip" data-city="rotterdam">
+                  <span class="city-dot rotterdam"></span>
+                  <span><b>鹿特丹</b><small>Rotterdam</small></span>
+                </button>
+              </div>
+              <button class="compare-toggle" type="button" data-toggle-compare>
+                <span class="compare-icon">
+                  <svg viewBox="0 0 24 24"><path d="M4 5h6v14H4zM14 5h6v14h-6z"/></svg>
+                </span>
+                <span><b>開啟雙城比較</b><small>在同一時間點對照兩座城市</small></span>
+                <span class="toggle-track"><span></span></span>
+              </button>
+              <button class="all-cities-button" type="button" data-all-cities>
+                <span>查看全球研究網絡</span>
+                <span>50+ 城市</span>
+              </button>
+            </section>
+
+            <section class="panel-section layer-section">
+              <div class="section-heading">
+                <h2>五因素圖層</h2>
+                <button class="text-button" type="button" data-all-layers>全部隱藏</button>
+              </div>
+              <div class="layer-list">
+                <label class="layer-row active" style="--layer-color:#3158d4">
+                  <input type="checkbox" value="urban" checked />
+                  <span class="checkmark"><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7"/></svg></span>
+                  <span class="layer-symbol urban-symbol"><i></i><i></i><i></i></span>
+                  <span class="layer-copy"><b>城市型態</b><small>地景、密度與騎乘距離</small></span>
+                  <span class="layer-number">01</span>
+                </label>
+                <label class="layer-row active" style="--layer-color:#d5624b">
+                  <input type="checkbox" value="alternatives" checked />
+                  <span class="checkmark"><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7"/></svg></span>
+                  <span class="layer-symbol line-symbol"></span>
+                  <span class="layer-copy"><b>移動替代方案</b><small>步行、公共運輸與汽車</small></span>
+                  <span class="layer-number">02</span>
+                </label>
+                <label class="layer-row active" style="--layer-color:#008878">
+                  <input type="checkbox" value="policy" checked />
+                  <span class="checkmark"><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7"/></svg></span>
+                  <span class="layer-symbol route-symbol"></span>
+                  <span class="layer-copy"><b>政策與治理</b><small>法規、預算與空間分配</small></span>
+                  <span class="layer-number">03</span>
+                </label>
+                <label class="layer-row active" style="--layer-color:#e0a129">
+                  <input type="checkbox" value="movement" checked />
+                  <span class="checkmark"><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7"/></svg></span>
+                  <span class="layer-symbol point-symbol"><i></i></span>
+                  <span class="layer-copy"><b>社會運動</b><small>倡議、參與與公民行動</small></span>
+                  <span class="layer-number">04</span>
+                </label>
+                <label class="layer-row active" style="--layer-color:#a34989">
+                  <input type="checkbox" value="culture" checked />
+                  <span class="checkmark"><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7"/></svg></span>
+                  <span class="layer-symbol ring-symbol"></span>
+                  <span class="layer-copy"><b>文化地位</b><small>身分、性別與日常意義</small></span>
+                  <span class="layer-number">05</span>
+                </label>
+              </div>
+            </section>
+          </div>
+
+          <div class="panel-footer">
+            <span class="status-dot"></span>
+            <span><b>研究進行中</b><small>最後更新：2026.07</small></span>
+            <button class="more-button" type="button" aria-label="更多"><span></span><span></span><span></span></button>
+          </div>
+        </aside>
+
+        <section class="map-stage" aria-label="互動研究地圖">
+          <div id="map"></div>
+
+          <div class="prototype-notice" role="note">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+            <span><b>概念原型</b>　地圖事件與指標為介面示範，待研究資料接入。</span>
+            <button type="button" aria-label="關閉提示">×</button>
+          </div>
+
+          <div class="map-toolbar">
+            <button type="button" data-fit-city aria-label="回到城市範圍">
+              <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+            </button>
+            <button type="button" data-toggle-basemap aria-label="切換底圖">
+              <svg viewBox="0 0 24 24"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4M4 17l8 4 8-4"/></svg>
+            </button>
+          </div>
+
+          <div class="map-title-card">
+            <span class="map-kicker">目前視角</span>
+            <div class="map-title-line">
+              <h2 data-map-title>明尼亞波利斯</h2>
+              <span data-map-year>1930</span>
+            </div>
+            <p data-map-subtitle>殖民治理下，街道秩序與現代移動開始成形。</p>
+          </div>
+
+          <div class="map-legend" aria-label="圖例">
+            <span><i class="legend-event"></i>研究事件</span>
+            <span><i class="legend-route"></i>移動網絡</span>
+            <span><i class="legend-source"></i>可查證史料</span>
+          </div>
+
+          <section class="timeline-panel" aria-label="時間軸">
+            <button class="play-button" type="button" aria-label="播放時間軸">
+              <svg class="play-icon" viewBox="0 0 24 24"><path d="m9 7 8 5-8 5V7Z"/></svg>
+              <svg class="pause-icon" viewBox="0 0 24 24"><path d="M9 7v10M15 7v10"/></svg>
+            </button>
+            <div class="timeline-content">
+              <div class="timeline-topline">
+                <span>TIME</span>
+                <strong data-year-display>1930</strong>
+                <span class="era-label" data-era-label>自行車成為城市日常</span>
+              </div>
+              <div class="slider-wrap">
+                <div class="year-ticks" aria-hidden="true">
+                  <span data-year="1920">1920</span>
+                  <span data-year="1940">1940</span>
+                  <span data-year="1960">1960</span>
+                  <span data-year="1980">1980</span>
+                  <span data-year="2000">2000</span>
+                  <span data-year="2025">2025</span>
+                </div>
+                <input id="year-slider" type="range" min="1920" max="2025" value="1930" step="1" aria-label="年份" />
+                <div class="event-dots" aria-hidden="true"></div>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <aside class="insight-panel" aria-label="研究發現">
+          <div class="insight-header">
+            <div>
+              <span class="eyebrow">Research lens</span>
+              <h2>在這個時刻</h2>
+            </div>
+            <button class="collapse-insights" type="button" aria-label="收合研究發現">
+              <svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>
+            </button>
+          </div>
+
+          <div class="insight-scroll">
+            <article class="featured-story">
+              <div class="story-meta">
+                <span class="story-factor" data-story-factor>城市型態</span>
+                <span class="story-status"><i></i>概念敘事</span>
+              </div>
+              <p class="story-number" data-story-number>01 / 05</p>
+              <h3 data-story-title>日常半徑正在改變</h3>
+              <p data-story-body>自行車把步行可及的城市放大了。工作、購物與社交的距離開始被重新定義，也改變了街道使用權的想像。</p>
+              <button class="read-story" type="button" data-read-story>
+                <span>展開研究脈絡</span>
+                <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </button>
+            </article>
+
+            <section class="compare-snapshot">
+              <div class="section-heading">
+                <h2>雙城快照</h2>
+                <button class="text-button" type="button" data-toggle-compare>完整比較</button>
+              </div>
+              <div class="snapshot-year"><span>時間切片</span><b data-snapshot-year>1930</b></div>
+              <div class="city-metric-grid">
+                <div class="metric-card minneapolis-card">
+                  <span class="metric-city"><i></i>明尼亞波利斯</span>
+                  <strong data-minneapolis-score>31</strong><small>/ 100</small>
+                  <div class="metric-bar"><span data-minneapolis-bar style="width:31%"></span></div>
+                  <p data-minneapolis-note>公園道連結城市生活</p>
+                </div>
+                <div class="metric-card rotterdam-card">
+                  <span class="metric-city"><i></i>鹿特丹</span>
+                  <strong data-rotterdam-score>44</strong><small>/ 100</small>
+                  <div class="metric-bar"><span data-rotterdam-bar style="width:44%"></span></div>
+                  <p data-rotterdam-note>港市日常高度依賴自行車</p>
+                </div>
+              </div>
+              <p class="score-note">綜合分數為五因素的介面示範，不是研究結論。</p>
+            </section>
+
+            <section class="evidence-section">
+              <div class="section-heading">
+                <h2>史料與證據</h2>
+                <span class="section-count" data-source-count>3 筆</span>
+              </div>
+              <div class="evidence-list" data-evidence-list></div>
+              <button class="view-all-sources" type="button" data-open-sources>
+                查看本時期所有史料
+                <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </button>
+            </section>
+          </div>
+
+          <div class="insight-footer">
+            <button type="button" data-share>
+              <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.5-4.5M8.2 13.2l7.5 4.5"/></svg>
+              分享視角
+            </button>
+            <button type="button" data-cite>
+              <svg viewBox="0 0 24 24"><path d="M7 17h3l2-4V7H6v6h3M15 17h3l2-4V7h-6v6h3"/></svg>
+              引用資料
+            </button>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <div class="drawer-backdrop" data-close-drawer></div>
+    <aside class="detail-drawer" aria-label="研究故事詳情" aria-hidden="true">
+      <div class="drawer-head">
+        <span class="eyebrow">Research story</span>
+        <button type="button" data-close-drawer aria-label="關閉"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+      <div class="drawer-body" data-drawer-body></div>
+    </aside>
+
+    <dialog class="search-dialog">
+      <form method="dialog" class="dialog-shell">
+        <div class="search-field">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input type="search" placeholder="搜尋城市、年份、政策或史料…" autofocus />
+          <button value="cancel" aria-label="關閉">ESC</button>
+        </div>
+        <div class="search-results">
+          <p>快速前往</p>
+          <button type="button" data-search-target="minneapolis"><span>城市</span><b>明尼亞波利斯 Minneapolis</b><small>目前主要測試案例</small></button>
+          <button type="button" data-search-target="rotterdam"><span>城市</span><b>鹿特丹 Rotterdam</b><small>目前比較案例</small></button>
+          <button type="button" data-search-year="1975"><span>年份</span><b>1970s 街道權利轉折</b><small>政策與社會運動</small></button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="contribute-dialog">
+      <form method="dialog" class="contribute-shell">
+        <button class="dialog-close" value="cancel" aria-label="關閉"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <span class="eyebrow">Citizen science</span>
+        <h2>把你的城市記憶<br />放上地圖</h2>
+        <p>提供一張老照片、一段口述記憶或一筆政策資料，協助我們補上官方檔案之外的移動歷史。</p>
+        <div class="contribute-options">
+          <button type="button"><span>01</span><b>上傳歷史影像</b><small>照片、地圖、海報或剪報</small></button>
+          <button type="button"><span>02</span><b>分享一段記憶</b><small>街道、通勤與生活故事</small></button>
+          <button type="button"><span>03</span><b>校正地圖資料</b><small>位置、年代或來源資訊</small></button>
+        </div>
+        <p class="contribute-note">此功能在原型階段僅展示參與流程，尚未送出資料。</p>
+      </form>
+    </dialog>
+
+    <div class="toast" role="status" aria-live="polite"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
