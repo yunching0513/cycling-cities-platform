@@ -2,19 +2,21 @@
 
 這是一個以地圖為核心的互動研究平台初版，根據專案中的 5-Factor Analysis、Tool 2: Bringing Sustainability Home 與 2026 年 7 月團隊會議筆記整理而成。
 
-## 開啟方式
+## 線上版本
 
-在專案根目錄啟動任何靜態網站伺服器，再開啟：
+正式網址：<https://cycling-cities-platform.vercel.app>
 
-`/cycling-cities-platform/`
+每次 push 到 `main` 分支，Vercel 會自動重新部署。
 
-例如使用 Python：
+## 本機開啟方式
+
+在本資料夾啟動任何靜態網站伺服器即可，例如：
 
 ```bash
 python3 -m http.server 4173
 ```
 
-接著前往 `http://localhost:4173/cycling-cities-platform/`。
+接著前往 `http://localhost:4173/`。
 
 ## 目前功能
 
