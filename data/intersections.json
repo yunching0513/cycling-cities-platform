@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "updated": "2026-08-19",
+    "schema": "extends build-plan-ai.md §4.4 to a point geometry",
+    "total": 4,
+    "placeholder": 4,
+    "note": "Demonstration slots for intersection-level modal split, two per city. counts is null on every record: no intersection count has been supplied, and inventing percentages to fill the interface is prohibited by plan §1.1. coordinatesConfirmed is false because the street pairs below are working suggestions, not a research-team selection."
+  },
+  "intersections": [
+    {
+      "id": "MPLS-INT-001",
+      "city": "mpls",
+      "name": {
+        "en": "Hennepin Avenue at Lagoon Avenue",
+        "zh": "Hennepin Avenue與Lagoon Avenue路口",
+        "nl": "Hennepin Avenue bij Lagoon Avenue"
+      },
+      "coordinates": [44.9483, -93.2977],
+      "coordinatesConfirmed": false,
+      "counts": null,
+      "placeholder": true,
+      "source": { "citation": "[TO BE CONFIRMED]", "archive": null, "reference": null, "url": null, "verifiedBy": null, "verifiedOn": null }
+    },
+    {
+      "id": "MPLS-INT-002",
+      "city": "mpls",
+      "name": {
+        "en": "Washington Avenue SE at Oak Street SE",
+        "zh": "Washington Avenue SE與Oak Street SE路口",
+        "nl": "Washington Avenue SE bij Oak Street SE"
+      },
+      "coordinates": [44.9738, -93.2277],
+      "coordinatesConfirmed": false,
+      "counts": null,
+      "placeholder": true,
+      "source": { "citation": "[TO BE CONFIRMED]", "archive": null, "reference": null, "url": null, "verifiedBy": null, "verifiedOn": null }
+    },
+    {
+      "id": "RDAM-INT-001",
+      "city": "rdam",
+      "name": {
+        "en": "Coolsingel at Meent",
+        "zh": "Coolsingel與Meent路口",
+        "nl": "Coolsingel bij de Meent"
+      },
+      "coordinates": [51.9225, 4.4777],
+      "coordinatesConfirmed": false,
+      "counts": null,
+      "placeholder": true,
+      "source": { "citation": "[TO BE CONFIRMED]", "archive": null, "reference": null, "url": null, "verifiedBy": null, "verifiedOn": null }
+    },
+    {
+      "id": "RDAM-INT-002",
+      "city": "rdam",
+      "name": {
+        "en": "Boompjes at the Erasmusbrug approach",
+        "zh": "Boompjes與Erasmusbrug引道路口",
+        "nl": "Boompjes bij de aanloop naar de Erasmusbrug"
+      },
+      "coordinates": [51.9105, 4.4870],
+      "coordinatesConfirmed": false,
+      "counts": null,
+      "placeholder": true,
+      "source": { "citation": "[TO BE CONFIRMED]", "archive": null, "reference": null, "url": null, "verifiedBy": null, "verifiedOn": null }
+    }
+  ]
+}

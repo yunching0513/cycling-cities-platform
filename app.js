@@ -17,6 +17,7 @@ const state = {
   sel: null,          // site id
   active: new Set(),
   compare: false,
+  inters: true,
   global: false,
   histOn: false,
   swipeOn: false,
@@ -28,6 +29,7 @@ const state = {
 
 /* filled by loadData() */
 let DECADES = [], ERAS = {}, FACTORS = [], SPLIT_C = [], CITIES = {}, NETWORK = [], STORIES = [];
+let INTERSECTIONS = [];
 let SITES = [], SPLIT = [], META = {};
 
 const T = () => UI[state.lang];
@@ -47,6 +49,7 @@ let map = null, currentBase = null, pins = null, network = null, histLayer = nul
 /* Side-by-side comparison uses a second Leaflet instance rather than one zoomed-out map,
    so each city keeps its own centre while both are read at the same scale. */
 let map2 = null, pins2 = null, base2 = null, syncing = false;
+let interL = null, interL2 = null;
 const BASES = {};
 
 /* ---------- data ---------- */
@@ -56,15 +59,16 @@ async function loadJSON(url) {
   return res.json();
 }
 async function loadData() {
-  const [ref, sites, split] = await Promise.all([
+  const [ref, sites, split, inters] = await Promise.all([
     loadJSON('./data/reference.json'),
     loadJSON('./data/sites.json'),
-    loadJSON('./data/modalsplit.json')
+    loadJSON('./data/modalsplit.json'),
+    loadJSON('./data/intersections.json')
   ]);
   DECADES = ref.decades; ERAS = ref.eras; FACTORS = ref.factors; SPLIT_C = ref.splitColours;
   CITIES = ref.cities; NETWORK = ref.networkCities; STORIES = ref.stories;
-  SITES = sites.sites; SPLIT = split.records;
-  META = { sites: sites.meta, split: split.meta };
+  SITES = sites.sites; SPLIT = split.records; INTERSECTIONS = inters.intersections;
+  META = { sites: sites.meta, split: split.meta, inters: inters.meta };
 
   state.active = new Set(FACTORS.map(f => f.id));
   if (CITIES[params.get('city')]) state.city = params.get('city');
@@ -105,6 +109,8 @@ function initMap() {
   base2 = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
     { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }).addTo(map2);
   pins2 = L.layerGroup().addTo(map2);
+  interL = L.layerGroup().addTo(map);
+  interL2 = L.layerGroup().addTo(map2);
   linkZoom(map, map2); linkZoom(map2, map);
 }
 
@@ -359,6 +365,42 @@ function renderPins() {
   drawSites(shownSites(), pins);
 }
 
+/* Junction-level modal split. The four points are demonstration slots: no count has been
+   supplied, so the marker carries the awaiting state rather than a value. */
+function renderInters() {
+  if (!interL) return;
+  interL.clearLayers(); interL2.clearLayers();
+  $('#intersBtn').classList.toggle('active', state.inters);
+  if (!state.inters || state.global) return;
+  const draw = (city, layer) => INTERSECTIONS.filter(x => x.city === city).forEach(x => {
+    const m = L.marker(x.coordinates, {
+      icon: L.divIcon({ className: 'inter-marker', html: '<span></span>', iconSize: [16, 16], iconAnchor: [8, 8] })
+    }).addTo(layer);
+    m.bindTooltip(`${tr(x.name)} · ${T().intersAwait}`, { direction: 'top', offset: [0, -9] });
+    m.on('click', () => openIntersDrawer(x.id));
+  });
+  if (state.compare) { draw('mpls', interL); draw('rdam', interL2); }
+  else draw(state.city, interL);
+}
+
+function openIntersDrawer(id) {
+  const t = T(), x = INTERSECTIONS.find(i => i.id === id);
+  if (!x) return;
+  const rows = t.legend.map((mode, i) => `<tr>
+      <th><i style="background:${SPLIT_C[i]}"></i>${mode}</th>
+      <td class="tbc">[TO BE CONFIRMED]</td></tr>`).join('');
+  openDrawer(t.intersTitle, `
+    <span class="drawer-year">${x.id} · ${cityName(x.city)} · ${decade()}s</span>
+    <h2>${tr(x.name)}</h2>
+    <div class="caveat"><b class="ph-flag">${x.coordinatesConfirmed ? '' : t.intersLocFlag}</b>
+      <p>${t.intersLocNote}</p></div>
+    <p class="lead">${t.intersLead}</p>
+    <table class="inter-table"><tbody>${rows}</tbody></table>
+    <p class="inter-empty">${t.intersNoData}</p>
+    <h3>${t.intersNeedH}</h3><p>${t.intersNeedBody}</p>
+    <div class="source-box"><b>${t.narrCite}</b><p class="tbc">[TO BE CONFIRMED]</p></div>`);
+}
+
 function drawSites(list, layer) {
   list.forEach(s => {
     const isNow = s.decade === decade();
@@ -480,7 +522,7 @@ function render() {
     const s = siteById(state.sel);
     if (!s || !shownSites().includes(s)) state.sel = null;
   }
-  renderYear(); renderFactors(); renderPins(); renderRecord(); renderSplit(); renderMapCard(); renderSheetContext();
+  renderYear(); renderFactors(); renderPins(); renderInters(); renderRecord(); renderSplit(); renderMapCard(); renderSheetContext();
   refreshPhaseActive();
   $$('.city-chip').forEach(b => b.classList.toggle('active', b.dataset.city === state.city && !state.compare && !state.global));
   $('#compareBtn').classList.toggle('active', state.compare);
@@ -805,6 +847,8 @@ function applyLang() {
   $('#sheetGrip').setAttribute('aria-label', t.sheetLabel);
   $('#compareBtn').querySelector('.t').textContent = t.compareTitle;
   $('#compareBtn').querySelector('.sub').textContent = t.compareSub;
+  $('#intersBtn').querySelector('.t').textContent = t.intersToggle;
+  $('#intersBtn').querySelector('.sub').textContent = t.intersSub;
   $('#globalBtn').querySelector('.t').textContent = t.globalTitle;
   $('#globalBtn').querySelector('.en').textContent = t.globalCount;
   $('#playBtn').setAttribute('aria-label', state.playing ? t.pause : t.play);
@@ -868,6 +912,7 @@ function bindEvents() {
     selectCity(ids[(ids.indexOf(state.city) + 1) % ids.length]);
   };
   $('#compareBtn').onclick = () => setCompare(!state.compare);
+  $('#intersBtn').onclick = () => { state.inters = !state.inters; renderInters(); };
   $('#globalBtn').onclick = () => setGlobal(!state.global);
   $('#allFactors').onclick = () => {
     const showAll = state.active.size !== FACTORS.length;
