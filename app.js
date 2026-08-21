@@ -115,6 +115,15 @@ function initMap() {
   linkZoom(map, map2); linkZoom(map2, map);
 }
 
+/* Leaflet's flyTo divides by the container size, so on a zero-sized map it produces a NaN
+   centre and throws. That would abort whatever click handler asked for the move, leaving the
+   interface half-switched, so fall back to a plain setView whenever the map has no size. */
+function goTo(m, center, zoom, opts) {
+  if (!m) return;
+  if (m.getSize().x === 0 || m.getSize().y === 0) m.setView(center, zoom, { animate: false });
+  else m.flyTo(center, zoom, opts);
+}
+
 /* Comparison only means something at one scale, so the two maps share a zoom level
    while keeping independent centres. */
 function linkZoom(from, to) {
@@ -617,7 +626,7 @@ function selectCity(id, { fly = true } = {}) {
   state.city = id; state.compare = false; state.global = false; state.sel = null;
   updateSplit();
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === 'map'));
-  if (fly) map.flyTo(CITIES[id].center, CITIES[id].zoom, { duration: 1.1 });
+  if (fly) goTo(map, CITIES[id].center, CITIES[id].zoom, { duration: 1.1 });
   if (state.histOn) { addHist(); setSwipe(state.swipeOn); }
   render();
 }
@@ -629,7 +638,7 @@ function setCompare(on) {
     map.setView(CITIES.mpls.center, z, { animate: false });
     map2.setView(CITIES.rdam.center, z, { animate: false });
   } else {
-    map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: 1.1 });
+    goTo(map, CITIES[state.city].center, CITIES[state.city].zoom, { duration: 1.1 });
   }
   updateSplit();
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === (on ? 'compare' : 'map')));
@@ -650,8 +659,12 @@ function updateSplit() {
     $('#splitR').textContent = cityName('rdam');
   }
   /* map2 is built inside a display:none container, so Leaflet starts with a zero size.
-     One resize after layout settles, one after the panes have painted. */
-  const resize = () => { map.invalidateSize(); if (map2) map2.invalidateSize(); };
+     Resizing it while still hidden makes Leaflet compute a NaN centre and throw, which
+     would abort whichever click handler called us: only resize it once it is on screen. */
+  const resize = () => {
+    map.invalidateSize();
+    if (map2 && on) map2.invalidateSize();
+  };
   requestAnimationFrame(resize);
   setTimeout(resize, 220);
 }
@@ -659,8 +672,8 @@ function updateSplit() {
 function setGlobal(on) {
   state.global = on; state.compare = false; state.sel = null;
   updateSplit();
-  if (on) { setHist(false); map.flyTo([22, 12], 2.2, { duration: 1.1 }); }
-  else map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: 1.1 });
+  if (on) { setHist(false); goTo(map, [22, 12], 2.2, { duration: 1.1 }); }
+  else goTo(map, CITIES[state.city].center, CITIES[state.city].zoom, { duration: 1.1 });
   render();
 }
 function setDecade(i) {
@@ -830,7 +843,7 @@ function searchIndex() {
       selectCity(s.city, { fly: false });
       setDecade(DECADES.indexOf(s.decade));
       selectSite(s.id);
-      map.flyTo(s.coordinates, 15, { duration: 1.1 });
+      goTo(map, s.coordinates, 15, { duration: 1.1 });
     }
   }));
   return out;
@@ -1006,13 +1019,13 @@ function bindEvents() {
   $('#zoomIn').onclick = () => map.zoomIn();
   $('#zoomOut').onclick = () => map.zoomOut();
   $('#fitBtn').onclick = () => {
-    if (state.global) map.flyTo([22, 12], 2.2, { duration: .9 });
+    if (state.global) goTo(map, [22, 12], 2.2, { duration: .9 });
     else if (state.compare) {
       const z = Math.min(CITIES.mpls.zoom, CITIES.rdam.zoom);
-      map.flyTo(CITIES.mpls.center, z, { duration: .9 });
-      map2.flyTo(CITIES.rdam.center, z, { duration: .9 });
+      goTo(map, CITIES.mpls.center, z, { duration: .9 });
+      goTo(map2, CITIES.rdam.center, z, { duration: .9 });
     }
-    else map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: .9 });
+    else goTo(map, CITIES[state.city].center, CITIES[state.city].zoom, { duration: .9 });
   };
   $('#noticeClose').onclick = () => $('#notice').remove();
   $('#noticeLink').onclick = openStatusDrawer;
