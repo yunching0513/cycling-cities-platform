@@ -34,6 +34,9 @@ const T = () => UI[state.lang];
 const tr = obj => (obj && (obj[state.lang] || obj.en)) || '';
 const decade = () => DECADES[state.di];
 const fc = id => FACTORS.find(f => f.id === id);
+/* The final decade is still running, so the axis ends at the present, not at 2020. */
+const NOW_YEAR = new Date().getFullYear();
+const onLastDecade = () => state.di === DECADES.length - 1;
 const cityName = id => tr(CITIES[id].name);
 const sitesOf = city => SITES.filter(s => s.city === city);
 const siteById = id => SITES.find(s => s.id === id);
@@ -290,6 +293,10 @@ function renderYear() {
   $('#yearBig').textContent = y;
   $('#yearEra').innerHTML = tr(ERAS[y]) + (state.lang === 'en' ? '' : `<span class="sub">${ERAS[y].en}</span>`);
   $$('#yearTicks span').forEach(s => s.classList.toggle('on', +s.dataset.i <= state.di));
+  $('#axisNow').textContent = onLastDecade()
+    ? T().axisNow(NOW_YEAR)
+    : `${DECADES[0]}s → ${T().today}`;
+  $('#axisNow').classList.toggle('is-now', onLastDecade());
 }
 function renderFactors() {
   const cities = visibleCities().length ? visibleCities() : Object.keys(CITIES);
@@ -421,7 +428,7 @@ function renderSplit() {
 function renderMapCard() {
   const t = T();
   $('#mapKicker').textContent = t.mapKicker;
-  $('#mapYear').textContent = decade() + 's';
+  $('#mapYear').textContent = decade() + 's' + (onLastDecade() ? ' · ' + t.today : '');
   if (state.global) {
     $('#mapTitle').textContent = t.mapGlobalTitle;
     $('#mapSub').textContent = t.mapGlobalSub;
@@ -443,6 +450,7 @@ function render() {
     if (!s || !shownSites().includes(s)) state.sel = null;
   }
   renderYear(); renderFactors(); renderPins(); renderRecord(); renderSplit(); renderMapCard(); renderSheetContext();
+  refreshPhaseActive();
   $$('.city-chip').forEach(b => b.classList.toggle('active', b.dataset.city === state.city && !state.compare && !state.global));
   $('#compareBtn').classList.toggle('active', state.compare);
   $('#globalBtn').classList.toggle('active', state.global);
@@ -509,14 +517,62 @@ function closeDrawer() {
   $('.drawer-backdrop').classList.remove('open');
 }
 function openStoryDrawer() {
-  const t = T(), st = storyAt(decade()), f = fc(st.factor);
+  const t = T();
   openDrawer(t.drawerStory, `
-    <span class="drawer-year">${decade()}s · ${tr(f.label)} · ${tr(st.era)}</span>
-    <h2>${tr(st.title)}</h2>
-    <p class="lead">${tr(st.body)}</p>
+    <span class="drawer-year">${t.narrTitle}</span>
+    <h2>${t.narrTitle}</h2>
+    <p class="lead">${t.narrIntro}</p>
+    <div class="phases">${STORIES.map(phaseCard).join('')}</div>
     <h3>${t.storyQ1}</h3><p>${t.storyA1}</p>
     <h3>${t.storyQ2}</h3><p>${t.storyA2}</p>
-    <div class="source-box"><b>${t.storyBox}</b><p>${t.storyBoxBody}</p></div>`);
+    <div class="source-box"><b>${t.storyBox}</b><p>${t.storyBoxBody}</p></div>
+    <p class="model-note">${t.narrModel}
+      <a href="https://telegraph.library.cmu.edu/" target="_blank" rel="noopener">telegraph.library.cmu.edu</a></p>`);
+  $$('#drawerBody .phase-go').forEach(b => b.onclick = () => {
+    const i = DECADES.indexOf(+b.closest('.phase').dataset.decade);
+    if (i >= 0) setDecade(i);
+    if (mq.matches) closeDrawer();
+    else b.closest('.phase').scrollIntoView({ block: 'nearest' });
+  });
+  refreshPhaseActive();
+}
+
+/* One narrative period. The body text is prototype copy; the draft block below it is
+   Lorem Ipsum, marking where the research team's narrative goes without pretending to
+   be that narrative. No image is embedded until rights are cleared (plan §1.1). */
+function phaseCard(st, i) {
+  const t = T(), f = fc(st.factor);
+  const span = st.from === st.to ? `${st.from}s` : `${st.from}s–${st.to}s`;
+  return `<article class="phase" data-decade="${st.from}">
+    <header>
+      <span class="phase-n">${t.narrPhase} ${String(i + 1).padStart(2, '0')}</span>
+      <span class="phase-span">${span}</span>
+      <span class="phase-factor" style="--fc:${f.c}">${tr(f.label)}</span>
+    </header>
+    <h4>${tr(st.title)}</h4>
+    <p class="phase-body">${tr(st.body)}</p>
+    <div class="draft">
+      <b class="ph-flag">${t.narrDraft}</b>
+      <p class="draft-note">${t.narrDraftNote}</p>
+      <p class="lorem">${t.narrLorem}</p>
+    </div>
+    <div class="img-slot"><span>${t.narrImage}</span><small>${t.narrImageNote}</small></div>
+    <p class="phase-cite"><b>${t.narrCite}</b> <span class="tbc">[TO BE CONFIRMED]</span></p>
+    <button type="button" class="phase-go"></button>
+  </article>`;
+}
+
+function refreshPhaseActive() {
+  const cards = $$('#drawerBody .phase');
+  if (!cards.length) return;
+  const t = T(), cur = storyAt(decade());
+  cards.forEach(el => {
+    const on = +el.dataset.decade === cur.from;
+    const go = el.querySelector('.phase-go');
+    el.classList.toggle('active', on);
+    go.textContent = on ? t.narrActive : t.narrJump;
+    go.disabled = on;
+  });
 }
 function openMethodDrawer() {
   const t = T();

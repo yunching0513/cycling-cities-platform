@@ -440,6 +440,55 @@ html:not([data-lang="zh"]) .contribute-shell h2{font-family:var(--en-serif);font
 .panel-body{display:contents}
 
 /* ---------- responsive ---------- */
+/* ---------- timeline: the axis runs to the present ---------- */
+.axis-now{margin-top:7px;font-family:var(--mono);font-size:9px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--silver);line-height:1.5}
+.axis-now.is-now{color:var(--vermilion)}
+
+/* ---------- narrative periods (structure after the CMU Telegraph project) ---------- */
+.phases{margin:16px 0 24px;border-top:1px solid var(--mist)}
+.phase{padding:18px 0 20px;border-bottom:1px solid var(--mist);position:relative}
+.phase::before{content:'';position:absolute;left:-22px;top:0;bottom:0;width:2px;background:transparent}
+.phase.active::before{background:var(--vermilion)}
+.phase header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+.phase-n,.phase-span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ash)}
+.phase-span{color:var(--ink)}
+.phase-factor{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--fc);border:1px solid var(--fc);padding:2px 6px 1px;white-space:nowrap}
+.drawer-body .phase h4{font-family:var(--serif);font-size:16px;font-weight:600;line-height:1.4;
+  color:var(--ink);margin-bottom:6px}
+html:not([data-lang="zh"]) .drawer-body .phase h4{font-family:var(--en-serif);font-size:18px;font-weight:500}
+.drawer-body .phase-body{font-size:12.5px;line-height:1.9;margin-bottom:12px}
+
+/* the draft block is deliberately unmistakable: it is not research content */
+.draft{border:1px dashed var(--stone);background:repeating-linear-gradient(135deg,
+  transparent 0 7px,rgba(187,184,174,.13) 7px 14px);padding:11px 13px;margin-bottom:11px}
+.draft .ph-flag{display:block;margin-bottom:5px}
+.drawer-body .draft-note{font-size:11px;line-height:1.75;color:var(--ash);margin-bottom:7px}
+.drawer-body .lorem{font-family:var(--en-serif);font-style:italic;font-size:12.5px;line-height:1.85;
+  color:var(--silver);margin:0}
+
+.img-slot{display:flex;flex-direction:column;gap:3px;justify-content:center;align-items:center;
+  text-align:center;min-height:74px;padding:12px;margin-bottom:11px;
+  border:1px dashed var(--stone);background:var(--paper-2)}
+.img-slot span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ash)}
+.img-slot small{font-family:var(--sans);font-size:10.5px;line-height:1.6;color:var(--silver);max-width:32ch}
+
+.drawer-body .phase-cite{font-family:var(--mono);font-size:10px;line-height:1.7;
+  color:var(--ash);margin-bottom:11px}
+.drawer-body .phase-cite b{font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--silver);margin-right:5px}
+
+.phase-go{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+  background:none;border:1px solid var(--ink);color:var(--ink);padding:7px 13px;cursor:pointer;
+  transition:background .15s,color .15s}
+.phase-go:hover:not(:disabled){background:var(--ink);color:var(--paper)}
+.phase-go:disabled{border-color:var(--vermilion);color:var(--vermilion);cursor:default}
+
+.drawer-body .model-note{font-size:11px;line-height:1.75;color:var(--silver);margin-top:16px}
+.drawer-body .model-note a{color:var(--vermilion)}
 @media(max-width:760px){
   :root{--top:48px}
   .primary-nav{display:none}
