@@ -91,6 +91,12 @@
       </button>
     </div>
 
+    <div class="pin-hint" id="pinHint" hidden>
+      <span id="pinHintText"></span>
+      <button type="button" id="pinGeo"></button>
+      <button type="button" id="pinCancel"></button>
+    </div>
+
     <div class="prototype-notice" id="notice" role="note">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
       <p><b id="noticeTitle"></b><span id="noticeBody"></span>
@@ -237,8 +243,29 @@
         <span class="eyebrow" id="contribEyebrow"></span>
         <h2 id="contribTitle"></h2>
         <p id="contribBody"></p>
+        <button class="btn pin-cta" id="pinBtn" type="button">
+          <span class="dot"></span><span><span class="t"></span><span class="sub"></span></span>
+        </button>
         <div class="contribute-options" id="contribOptions"></div>
         <p class="contribute-note" id="contribNote"></p>
+      </div>
+    </dialog>
+
+    <dialog class="contribute-dialog" id="pinDialog">
+      <div class="contribute-shell">
+        <button class="dialog-close" id="pinClose" type="button" aria-label="Close">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <span class="eyebrow" id="pinEyebrow"></span>
+        <h2 id="pinTitle"></h2>
+        <p class="pin-coords"><b id="pinCoordsLbl"></b> <span id="pinCoordsVal"></span></p>
+        <label class="pin-field"><span id="pinNameLbl"></span><input type="text" id="pinName" /></label>
+        <label class="pin-field"><span id="pinDecadeLbl"></span><select id="pinDecade"></select></label>
+        <label class="pin-field"><span id="pinNoteLbl"></span><textarea id="pinNote" rows="3"></textarea></label>
+        <label class="pin-field pin-out"><span id="pinOutLbl"></span>
+          <textarea id="pinOut" rows="7" readonly></textarea></label>
+        <button class="btn" id="pinCopy" type="button"><span class="t"></span></button>
+        <p class="contribute-note" id="pinStore"></p>
       </div>
     </dialog>
 

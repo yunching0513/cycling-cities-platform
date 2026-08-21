@@ -50,6 +50,7 @@ let map = null, currentBase = null, pins = null, network = null, histLayer = nul
    so each city keeps its own centre while both are read at the same scale. */
 let map2 = null, pins2 = null, base2 = null, syncing = false;
 let interL = null, interL2 = null;
+let pinMarker = null, pinLL = null;
 const BASES = {};
 
 /* ---------- data ---------- */
@@ -381,6 +382,65 @@ function renderInters() {
   });
   if (state.compare) { draw('mpls', interL); draw('rdam', interL2); }
   else draw(state.city, interL);
+}
+
+/* Citizen-science pin. Plan §7 rules out a backend, so a contribution cannot be stored:
+   the flow captures a point and hands the contributor a block to send on, and says so. */
+function startPinMode() {
+  $('#contribDialog').close();
+  document.body.classList.add('pinning');
+  $('#pinHint').hidden = false;
+  map.once('click', onPinClick);
+}
+function stopPinMode() {
+  document.body.classList.remove('pinning');
+  $('#pinHint').hidden = true;
+  map.off('click', onPinClick);
+}
+function onPinClick(e) { dropPin(e.latlng.lat, e.latlng.lng); }
+
+function dropPin(lat, lng) {
+  stopPinMode();
+  pinLL = { lat: +lat.toFixed(5), lng: +lng.toFixed(5) };
+  if (pinMarker) map.removeLayer(pinMarker);
+  pinMarker = L.marker([pinLL.lat, pinLL.lng], {
+    icon: L.divIcon({ className: 'pin-marker', html: '<span></span>', iconSize: [18, 18], iconAnchor: [9, 9] })
+  }).addTo(map);
+  $('#pinCoordsVal').textContent = `${pinLL.lat}, ${pinLL.lng}`;
+  refreshPinOut();
+  $('#pinDialog').showModal();
+}
+
+function useMyLocation() {
+  if (!navigator.geolocation) { toast(T().pinGeoFail); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => { map.setView([pos.coords.latitude, pos.coords.longitude], 15); dropPin(pos.coords.latitude, pos.coords.longitude); },
+    () => toast(T().pinGeoFail),
+    { timeout: 8000 }
+  );
+}
+
+/* GeoJSON so the research team can drop it straight into their own tooling. */
+function pinSubmission() {
+  const t = T();
+  return JSON.stringify({
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [pinLL.lng, pinLL.lat] },
+    properties: {
+      submittedVia: 'Cycling Cities Tool 2 prototype',
+      city: state.city,
+      name: $('#pinName').value.trim() || '[TO BE CONFIRMED]',
+      decade: Number($('#pinDecade').value),
+      note: $('#pinNote').value.trim() || '[TO BE CONFIRMED]',
+      language: state.lang,
+      placeholder: true,
+      source: { citation: '[TO BE CONFIRMED]', verifiedBy: null, verifiedOn: null }
+    }
+  }, null, 2);
+}
+
+function refreshPinOut() {
+  if (pinLL) $('#pinOut').value = pinSubmission();
 }
 
 function openIntersDrawer(id) {
@@ -888,6 +948,23 @@ function applyLang() {
     `<button type="button"><span>0${i + 1}</span><span><b>${b}</b><small>${s}</small></span></button>`).join('');
   $$('#contribOptions button').forEach(b => b.onclick = () => toast(T().tContrib));
   $('#contribNote').textContent = t.contribNote;
+  $('#pinBtn').querySelector('.t').textContent = t.pinOption;
+  $('#pinBtn').querySelector('.sub').textContent = t.pinOptionSub;
+  $('#pinHintText').textContent = t.pinHint;
+  $('#pinGeo').textContent = t.pinGeo;
+  $('#pinCancel').textContent = t.pinCancel;
+  $('#pinEyebrow').textContent = t.contribute;
+  $('#pinTitle').textContent = t.pinTitle;
+  $('#pinCoordsLbl').textContent = t.pinCoords;
+  $('#pinNameLbl').textContent = t.pinName;
+  $('#pinDecadeLbl').textContent = t.pinDecade;
+  $('#pinNoteLbl').textContent = t.pinNote;
+  $('#pinCopy').querySelector('.t').textContent = t.pinCopy;
+  $('#pinStore').textContent = t.pinStore;
+  $('#pinOutLbl').textContent = t.pinOutLbl;
+  refreshPinOut();
+  $('#pinDecade').innerHTML = DECADES.map(y => `<option value="${y}">${y}s</option>`).join('');
+  $('#pinDecade').value = String(decade());
 
   if (state.histOn && histLayer) histStatus(t.ready);
   else $('#histStatus').innerHTML = `<span class="k">${t.kLayer}</span> ${t.layerOff}`;
@@ -957,6 +1034,17 @@ function bindEvents() {
   $('#searchInput').addEventListener('input', e => runSearch(e.target.value));
   $('#contribBtn').onclick = () => $('#contribDialog').showModal();
   $('#contribClose').onclick = () => $('#contribDialog').close();
+  $('#pinBtn').onclick = startPinMode;
+  $('#pinCancel').onclick = stopPinMode;
+  $('#pinGeo').onclick = useMyLocation;
+  $('#pinClose').onclick = () => $('#pinDialog').close();
+  $('#pinDialog').addEventListener('click', e => { if (e.target.id === 'pinDialog') $('#pinDialog').close(); });
+  ['#pinName', '#pinDecade', '#pinNote'].forEach(sel => $(sel).addEventListener('input', refreshPinOut));
+  $('#pinCopy').onclick = async () => {
+    refreshPinOut();
+    try { await navigator.clipboard.writeText($('#pinOut').value); toast(T().pinCopied); }
+    catch { $('#pinOut').select(); }   /* clipboard blocked: let the contributor copy by hand */
+  };
   $('#menuBtn').onclick = () => mq.matches ? cycleSheet() : $('#panel').scrollTo({ top: 0, behavior: 'smooth' });
 
   $('#shareBtn').onclick = async () => {
