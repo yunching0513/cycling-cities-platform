@@ -543,7 +543,35 @@ body.pinning #map,body.pinning #map2{cursor:crosshair}
   color:var(--graphite);background:var(--paper-2)}
 .pin-field input:focus,.pin-field select:focus,.pin-field textarea:focus{outline:none;
   border-color:var(--vermilion)}
+/* ---------- first-run guided tour ---------- */
+.tour[hidden]{display:none}
+.tour-block{position:fixed;inset:0;z-index:2400}
+.tour-spot{position:fixed;z-index:2401;pointer-events:none;border:1px solid var(--vermilion);
+  box-shadow:0 0 0 9999px rgba(31,29,25,.62);transition:left .22s ease,top .22s ease,
+  width .22s ease,height .22s ease}
+.tour-tip{position:fixed;z-index:2402;width:min(342px,calc(100vw - 28px));
+  background:var(--paper);border:1px solid var(--ink);padding:17px 19px 15px;box-shadow:var(--shadow)}
+.tour-count{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--vermilion)}
+.tour-tip h3{font-family:var(--serif);font-size:17px;font-weight:600;line-height:1.4;
+  margin:7px 0 8px;color:var(--ink)}
+html:not([data-lang="zh"]) .tour-tip h3{font-family:var(--en-serif);font-size:19px;font-weight:500}
+.tour-tip p{font-family:var(--sans);font-size:12.5px;line-height:1.85;color:var(--graphite)}
+.tour-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:15px;padding-top:13px;border-top:1px solid var(--mist)}
+.tour-nav{display:flex;gap:7px}
+.tour-bar button{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  padding:8px 13px;border:1px solid var(--stone);background:none;color:var(--graphite);cursor:pointer;
+  transition:background .15s,border-color .15s,color .15s}
+.tour-bar button:hover:not(:disabled){border-color:var(--ink);color:var(--ink)}
+.tour-bar button.primary{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.tour-bar button.primary:hover{background:var(--vermilion);border-color:var(--vermilion)}
+.tour-bar button:disabled{opacity:.35;cursor:default}
+.tour-skip{border-color:transparent;color:var(--silver)}
+.tour-skip:hover:not(:disabled){border-color:transparent;color:var(--vermilion)}
 @media(max-width:760px){
+  /* the tour card spans the phone width and sits clear of the sheet grip */
+  .tour-tip{width:calc(100vw - 24px)}
+  .tour-bar button{padding:10px 12px}
   .pin-hint{left:12px;right:12px;transform:none;flex-wrap:wrap;gap:8px}
   .pin-hint span{flex:1 0 100%}
   /* a phone is too narrow for two columns, so the comparison stacks */

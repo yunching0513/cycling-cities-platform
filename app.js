@@ -682,6 +682,103 @@ function setDecade(i) {
   render();
 }
 
+/* ---------- first-run guided tour ----------
+   Seven steps that name the parts of the interface a first-time visitor cannot guess:
+   what the timeline covers, what the marker shapes mean, and that most records are not
+   yet confirmed. Purely explanatory: the backdrop blocks interaction so a step cannot
+   leave the app in a state the next step does not expect. */
+const TOUR_KEY = 'cc.tour.v1';
+const TOUR = [
+  { key: 'welcome' },
+  { key: 'views',   sel: '.primary-nav', sheet: 'full' },
+  { key: 'decade',  sel: '#decadeBlock', sheet: 'full' },
+  { key: 'factors', sel: '#factors',     sheet: 'full' },
+  { key: 'marks',   sel: '#mapLegend', mobile: '#sheetContext', sheet: 'peek' },
+  { key: 'lang',    sel: '#langSwitch',  sheet: 'full' },
+  { key: 'add',     sel: '#contribBtn',  sheet: 'peek' }
+];
+let tourAt = -1;
+
+/* localStorage throws in some privacy modes: treat that as "already seen" so the tour
+   never reopens on every load for a visitor whose choice cannot be remembered. */
+function tourSeen() {
+  try { return localStorage.getItem(TOUR_KEY) === '1'; } catch { return true; }
+}
+function rememberTour() {
+  try { localStorage.setItem(TOUR_KEY, '1'); } catch { /* nothing to do */ }
+}
+const tourOpen = () => !$('#tour').hidden;
+
+function startTour() {
+  tourAt = 0;
+  $('#tour').hidden = false;
+  showTourStep();
+}
+function endTour() {
+  $('#tour').hidden = true;
+  rememberTour();
+  $('#tourBtn').focus({ preventScroll: true });
+}
+function moveTour(dir) {
+  const i = tourAt + dir;
+  if (i < 0) return;
+  if (i >= TOUR.length) { endTour(); return; }
+  tourAt = i;
+  showTourStep();
+}
+function showTourStep() {
+  const t = T(), step = TOUR[tourAt], copy = t.tour[step.key];
+  if (mq.matches && step.sheet) setSheet(step.sheet, { animate: false });
+  $('#tourCount').textContent = t.tourOf(tourAt + 1, TOUR.length);
+  $('#tourTitle').textContent = copy.t;
+  $('#tourBody').textContent = copy.b;
+  $('#tourSkip').textContent = t.tourSkip;
+  $('#tourBack').textContent = t.tourBack;
+  $('#tourBack').disabled = tourAt === 0;
+  $('#tourNext').textContent = tourAt === TOUR.length - 1 ? t.tourDone : t.tourNext;
+  const el = tourTarget(step);
+  if (el) el.scrollIntoView({ block: 'center', inline: 'nearest' });
+  /* Place synchronously so the highlight is right even in a background tab, where
+     requestAnimationFrame never fires; the later passes only refine it once the
+     scroll, and on a phone the sheet animation, have settled. */
+  placeTour(step);
+  requestAnimationFrame(() => placeTour(step));
+  if (mq.matches) setTimeout(() => placeTour(step), 340);
+}
+function tourTarget(step) {
+  const sel = (mq.matches && step.mobile) || step.sel;
+  return sel ? $(sel) : null;
+}
+function placeTour(step) {
+  const spot = $('#tourSpot'), tip = $('#tourTip');
+  const el = tourTarget(step);
+  const r = el && el.getBoundingClientRect();
+  const shown = !!r && r.width > 0 && r.height > 0;
+  const pad = 6;
+  Object.assign(spot.style, shown
+    ? { left: (r.left - pad) + 'px', top: (r.top - pad) + 'px',
+        width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px', borderWidth: '1px' }
+    /* no anchor: a zero-size spot still dims the whole screen through its box-shadow */
+    : { left: '50%', top: '50%', width: '0px', height: '0px', borderWidth: '0px' });
+
+  const tw = tip.offsetWidth, th = tip.offsetHeight, gap = 14, edge = 12;
+  let left, top;
+  if (!shown) {
+    left = (innerWidth - tw) / 2; top = (innerHeight - th) / 2;
+  } else if (r.bottom + gap + th <= innerHeight - edge) {
+    top = r.bottom + gap; left = r.left + r.width / 2 - tw / 2;
+  } else if (r.top - gap - th >= edge) {
+    top = r.top - gap - th; left = r.left + r.width / 2 - tw / 2;
+  } else if (r.left - gap - tw >= edge) {
+    top = r.top; left = r.left - gap - tw;
+  } else {
+    top = r.top; left = r.right + gap;
+  }
+  tip.style.left = Math.max(edge, Math.min(left, innerWidth - tw - edge)) + 'px';
+  tip.style.top = Math.max(edge, Math.min(top, innerHeight - th - edge)) + 'px';
+  $('#tourNext').focus({ preventScroll: true });
+}
+
 /* ---------- drawer ---------- */
 function openDrawer(eyebrow, html) {
   $('#drawerEyebrow').textContent = eyebrow;
@@ -901,6 +998,9 @@ function applyLang() {
   $$('.nav-item').forEach((b, i) => b.textContent = t.nav[i]);
   $('#searchBtn').setAttribute('aria-label', t.searchLabel);
   $('#menuBtn').setAttribute('aria-label', t.menuLabel);
+  $('#tourBtn').setAttribute('aria-label', t.tourStart);
+  $('#tourBtn').setAttribute('title', t.tourStart);
+  if (tourOpen()) showTourStep();
   $('#contribBtn').querySelector('span').textContent = t.contribute;
 
   $('#headEyebrow').textContent = t.eyebrow;
@@ -1059,6 +1159,10 @@ function bindEvents() {
     catch { $('#pinOut').select(); }   /* clipboard blocked: let the contributor copy by hand */
   };
   $('#menuBtn').onclick = () => mq.matches ? cycleSheet() : $('#panel').scrollTo({ top: 0, behavior: 'smooth' });
+  $('#tourBtn').onclick = startTour;
+  $('#tourSkip').onclick = endTour;
+  $('#tourBack').onclick = () => moveTour(-1);
+  $('#tourNext').onclick = () => moveTour(1);
 
   $('#shareBtn').onclick = async () => {
     syncUrl();
@@ -1073,6 +1177,14 @@ function bindEvents() {
   };
 
   document.addEventListener('keydown', e => {
+    if (tourOpen()) {
+      if (e.key === 'Escape') endTour();
+      else if (e.key === 'ArrowRight') moveTour(1);
+      else if (e.key === 'ArrowLeft') moveTour(-1);
+      else return;
+      e.preventDefault();
+      return;
+    }
     if (e.key === 'Escape') closeDrawer();
     if (e.target.tagName === 'INPUT') return;
     if (e.key === '/' && !$('#searchDialog').open) { e.preventDefault(); $('#searchBtn').click(); }
@@ -1084,7 +1196,10 @@ function bindEvents() {
   bindDividerDrag();
   bindSheetDrag();
   mq.addEventListener('change', applyLayout);
-  addEventListener('resize', () => { if (mq.matches) setSheet(state.sheet, { animate: false }); });
+  addEventListener('resize', () => {
+    if (mq.matches) setSheet(state.sheet, { animate: false });
+    if (tourOpen()) placeTour(TOUR[tourAt]);
+  });
 }
 
 /* ---------- boot ---------- */
@@ -1098,4 +1213,6 @@ loadData().then(() => {
   applyLang();
   document.body.classList.add('ready');
   setTimeout(() => map.invalidateSize(), 60);
+  const wants = params.get('tour');
+  if (wants === '1' || (wants !== '0' && !tourSeen())) setTimeout(startTour, 700);
 }).catch(showLoadError);
