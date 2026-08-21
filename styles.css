@@ -489,7 +489,28 @@ html:not([data-lang="zh"]) .drawer-body .phase h4{font-family:var(--en-serif);fo
 
 .drawer-body .model-note{font-size:11px;line-height:1.75;color:var(--silver);margin-top:16px}
 .drawer-body .model-note a{color:var(--vermilion)}
+/* ---------- side-by-side city comparison ---------- */
+:root{--split-x:50%}
+#map2{position:absolute;top:var(--top);bottom:0;left:var(--split-x);
+  right:calc(100% - 2 * var(--split-x));display:none;background:var(--paper-2);
+  border-left:1px solid var(--ink)}
+body.split #map{right:calc(100% - var(--split-x))}
+body.split #map2{display:block}
+.split-labels{position:absolute;top:calc(var(--top) + 14px);left:0;
+  width:calc(2 * var(--split-x));z-index:620;display:none;pointer-events:none}
+body.split .split-labels{display:flex}
+/* the prototype notice shares the top-left corner, so it drops below the label row */
+body.split .prototype-notice{top:calc(var(--top) + 54px)}
+.split-labels span{flex:1;margin:0 16px;padding:6px 0;text-align:center;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink);background:rgba(241,239,233,.92);border:1px solid var(--stone)}
 @media(max-width:760px){
+  /* a phone is too narrow for two columns, so the comparison stacks */
+  body.split #map{right:0;bottom:50%}
+  #map2{left:0;right:0;top:50%;bottom:0;border-left:0;border-top:1px solid var(--ink)}
+  .split-labels{width:100%;flex-direction:column;gap:0}
+  .split-labels span{margin:0 12px}
+  body.split .split-labels span:last-child{position:fixed;top:calc(50% + 8px);left:12px;right:12px;margin:0}
   :root{--top:48px}
   .primary-nav{display:none}
   .menu-btn{display:grid}

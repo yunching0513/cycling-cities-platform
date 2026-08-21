@@ -44,6 +44,9 @@ const splitFor = (city, d) => SPLIT.find(r => r.city === city && r.decade === d)
 const verifiedCount = () => SITES.filter(s => !s.placeholder).length;
 
 let map = null, currentBase = null, pins = null, network = null, histLayer = null, playTimer = null;
+/* Side-by-side comparison uses a second Leaflet instance rather than one zoomed-out map,
+   so each city keeps its own centre while both are read at the same scale. */
+let map2 = null, pins2 = null, base2 = null, syncing = false;
 const BASES = {};
 
 /* ---------- data ---------- */
@@ -96,6 +99,24 @@ function initMap() {
   pins = L.layerGroup().addTo(map);
   network = L.layerGroup().addTo(map);
   map.on('move zoom moveend zoomend resize viewreset', updateClip);
+
+  map2 = L.map('map2', { zoomControl: false, minZoom: 2, attributionControl: false })
+    .setView(CITIES.rdam.center, CITIES.rdam.zoom);
+  base2 = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }).addTo(map2);
+  pins2 = L.layerGroup().addTo(map2);
+  linkZoom(map, map2); linkZoom(map2, map);
+}
+
+/* Comparison only means something at one scale, so the two maps share a zoom level
+   while keeping independent centres. */
+function linkZoom(from, to) {
+  from.on('zoomend', () => {
+    if (!state.compare || syncing || to.getZoom() === from.getZoom()) return;
+    syncing = true;
+    to.setZoom(from.getZoom(), { animate: false });
+    syncing = false;
+  });
 }
 
 /* ---------- PMTiles raster layer ---------- */
@@ -280,8 +301,8 @@ function renderSheetContext() {
 
 /* ---------- render ---------- */
 const visibleCities = () => state.global ? [] : state.compare ? Object.keys(CITIES) : [state.city];
-const shownSites = () => visibleCities().flatMap(sitesOf)
-  .filter(s => state.active.has(s.factor) && s.decade <= decade());
+const activeSites = list => list.filter(s => state.active.has(s.factor) && s.decade <= decade());
+const shownSites = () => activeSites(visibleCities().flatMap(sitesOf));
 
 function renderTicks() {
   $('#yearTicks').innerHTML = DECADES.map((y, i) =>
@@ -318,6 +339,7 @@ function renderFactors() {
 }
 function renderPins() {
   pins.clearLayers();
+  if (pins2) pins2.clearLayers();
   network.clearLayers();
 
   if (state.global) {
@@ -329,11 +351,20 @@ function renderPins() {
     return;
   }
 
-  shownSites().forEach(s => {
+  if (state.compare) {
+    drawSites(activeSites(sitesOf('mpls')), pins);
+    drawSites(activeSites(sitesOf('rdam')), pins2);
+    return;
+  }
+  drawSites(shownSites(), pins);
+}
+
+function drawSites(list, layer) {
+  list.forEach(s => {
     const isNow = s.decade === decade();
     const col = fc(s.factor).c;
     const chosen = state.sel === s.id;
-    if (chosen) L.circleMarker(s.coordinates, { radius: 15, color: col, weight: 1, fill: false, dashArray: '2,3' }).addTo(pins);
+    if (chosen) L.circleMarker(s.coordinates, { radius: 15, color: col, weight: 1, fill: false, dashArray: '2,3' }).addTo(layer);
     /* placeholder records are drawn hollow with a dashed edge so an unconfirmed
        point can never be mistaken for a verified one */
     const style = s.placeholder
@@ -341,13 +372,13 @@ function renderPins() {
           fillColor: '#F1EFE9', fillOpacity: isNow ? .55 : .25 }
       : { radius: isNow ? 8 : 5, color: '#F1EFE9', weight: isNow ? 2 : 1,
           fillColor: col, fillOpacity: isNow ? .95 : .45 };
-    const m = L.circleMarker(s.coordinates, style).addTo(pins);
+    const m = L.circleMarker(s.coordinates, style).addTo(layer);
     m.bindTooltip(`${s.decade}s · ${tr(s.title)}${s.placeholder ? ' · ' + T().placeholderFlag : ''}`,
       { direction: 'top', offset: [0, -8] });
     m.on('click', () => selectSite(s.id));
     /* a wider transparent disc keeps the point tappable on a touch screen */
     L.circleMarker(s.coordinates, { radius: 17, stroke: false, fillColor: col, fillOpacity: .01 })
-      .on('click', () => selectSite(s.id)).addTo(pins);
+      .on('click', () => selectSite(s.id)).addTo(layer);
   });
 }
 function recordMedia(s) {
@@ -453,6 +484,10 @@ function render() {
   refreshPhaseActive();
   $$('.city-chip').forEach(b => b.classList.toggle('active', b.dataset.city === state.city && !state.compare && !state.global));
   $('#compareBtn').classList.toggle('active', state.compare);
+  if (state.compare) {
+    $('#splitL').textContent = cityName('mpls');
+    $('#splitR').textContent = cityName('rdam');
+  }
   $('#globalBtn').classList.toggle('active', state.global);
   $('#histBtn').disabled = state.compare || state.global;
   syncUrl();
@@ -478,6 +513,7 @@ function revealRecord() {
 }
 function selectCity(id, { fly = true } = {}) {
   state.city = id; state.compare = false; state.global = false; state.sel = null;
+  updateSplit();
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === 'map'));
   if (fly) map.flyTo(CITIES[id].center, CITIES[id].zoom, { duration: 1.1 });
   if (state.histOn) { addHist(); setSwipe(state.swipeOn); }
@@ -485,13 +521,42 @@ function selectCity(id, { fly = true } = {}) {
 }
 function setCompare(on) {
   state.compare = on; state.global = false; state.sel = null;
-  if (on) { setHist(false); map.fitBounds(Object.values(CITIES).map(c => c.center), { padding: [70, 70], maxZoom: 4 }); }
-  else map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: 1.1 });
+  if (on) {
+    setHist(false);
+    const z = Math.min(CITIES.mpls.zoom, CITIES.rdam.zoom);
+    map.setView(CITIES.mpls.center, z, { animate: false });
+    map2.setView(CITIES.rdam.center, z, { animate: false });
+  } else {
+    map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: 1.1 });
+  }
+  updateSplit();
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === (on ? 'compare' : 'map')));
   render();
 }
+/* The right-hand panel overlays the map, so the split is measured against the map area
+   actually visible to the left of it, not against the viewport. */
+function layoutSplit() {
+  const avail = Math.max(320, $('.panel').getBoundingClientRect().left - 14);
+  document.documentElement.style.setProperty('--split-x', (avail / 2) + 'px');
+}
+function updateSplit() {
+  const on = state.compare && !state.global;
+  document.body.classList.toggle('split', on);
+  if (on && !mq.matches) layoutSplit();
+  if (on) {
+    $('#splitL').textContent = cityName('mpls');
+    $('#splitR').textContent = cityName('rdam');
+  }
+  /* map2 is built inside a display:none container, so Leaflet starts with a zero size.
+     One resize after layout settles, one after the panes have painted. */
+  const resize = () => { map.invalidateSize(); if (map2) map2.invalidateSize(); };
+  requestAnimationFrame(resize);
+  setTimeout(resize, 220);
+}
+
 function setGlobal(on) {
   state.global = on; state.compare = false; state.sel = null;
+  updateSplit();
   if (on) { setHist(false); map.flyTo([22, 12], 2.2, { duration: 1.1 }); }
   else map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: 1.1 });
   render();
@@ -815,11 +880,16 @@ function bindEvents() {
     map.removeLayer(currentBase);
     currentBase = BASES[b.dataset.base].addTo(map);
   });
+  addEventListener('resize', () => { if (state.compare) updateSplit(); });
   $('#zoomIn').onclick = () => map.zoomIn();
   $('#zoomOut').onclick = () => map.zoomOut();
   $('#fitBtn').onclick = () => {
     if (state.global) map.flyTo([22, 12], 2.2, { duration: .9 });
-    else if (state.compare) map.fitBounds(Object.values(CITIES).map(c => c.center), { padding: [70, 70], maxZoom: 4 });
+    else if (state.compare) {
+      const z = Math.min(CITIES.mpls.zoom, CITIES.rdam.zoom);
+      map.flyTo(CITIES.mpls.center, z, { duration: .9 });
+      map2.flyTo(CITIES.rdam.center, z, { duration: .9 });
+    }
     else map.flyTo(CITIES[state.city].center, CITIES[state.city].zoom, { duration: .9 });
   };
   $('#noticeClose').onclick = () => $('#notice').remove();
