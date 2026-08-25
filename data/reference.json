@@ -1,7 +1,7 @@
 {
   "meta": {
-    "updated": "2026-08-19",
-    "note": "Structural reference data: decades, era labels, the five factors, city map configuration, network cities and era narratives."
+    "updated": "2026-08-25",
+    "note": "riga, buda and lisb carry no site records, no modal split rows and no dated map. Their centre coordinates are approximate city centres and should be confirmed by the contributing researcher."
   },
   "decades": [
     1890,
@@ -17,7 +17,8 @@
     1990,
     2000,
     2010,
-    2020
+    2020,
+    2025
   ],
   "eras": {
     "1890": {
@@ -89,6 +90,11 @@
       "en": "Reallocation",
       "zh": "空間再分配",
       "nl": "Herverdeling van ruimte"
+    },
+    "2025": {
+      "en": "Present day",
+      "zh": "當代",
+      "nl": "Het heden"
     }
   },
   "factors": [
@@ -232,6 +238,45 @@
           ]
         ]
       }
+    },
+    "riga": {
+      "name": {
+        "en": "Riga",
+        "zh": "里加",
+        "nl": "Riga"
+      },
+      "center": [
+        56.9496,
+        24.1052
+      ],
+      "zoom": 13,
+      "hist": null
+    },
+    "buda": {
+      "name": {
+        "en": "Budapest",
+        "zh": "布達佩斯",
+        "nl": "Boedapest"
+      },
+      "center": [
+        47.4979,
+        19.0402
+      ],
+      "zoom": 12,
+      "hist": null
+    },
+    "lisb": {
+      "name": {
+        "en": "Lisbon",
+        "zh": "里斯本",
+        "nl": "Lissabon"
+      },
+      "center": [
+        38.7223,
+        -9.1393
+      ],
+      "zoom": 13,
+      "hist": null
     }
   },
   "networkCities": [
@@ -261,10 +306,22 @@
     },
     {
       "ll": [
+        56.9496,
+        24.1052
+      ],
+      "primary": true,
+      "name": {
+        "en": "Riga",
+        "zh": "里加",
+        "nl": "Riga"
+      }
+    },
+    {
+      "ll": [
         38.7223,
         -9.1393
       ],
-      "primary": false,
+      "primary": true,
       "name": {
         "en": "Lisbon",
         "zh": "里斯本",
@@ -276,7 +333,7 @@
         47.4979,
         19.0402
       ],
-      "primary": false,
+      "primary": true,
       "name": {
         "en": "Budapest",
         "zh": "布達佩斯",
@@ -543,7 +600,7 @@
     },
     {
       "from": 2020,
-      "to": 2020,
+      "to": 2025,
       "factor": "alt",
       "era": {
         "en": "Multimodal and sustainable transition",

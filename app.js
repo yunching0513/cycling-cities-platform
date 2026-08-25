@@ -17,6 +17,8 @@ const state = {
   sel: null,          // site id
   active: new Set(),
   compare: false,
+  cityB: null,
+  narrDock: false,
   inters: true,
   global: false,
   histOn: false,
@@ -40,6 +42,16 @@ const fc = id => FACTORS.find(f => f.id === id);
 const NOW_YEAR = new Date().getFullYear();
 const onLastDecade = () => state.di === DECADES.length - 1;
 const cityName = id => tr(CITIES[id].name);
+/* The axis is mostly decades but ends on a single recent year, so 2025 must never
+   render as "2025s". Language-aware, because the suffix differs per language. */
+function stepLabel(y) {
+  const isDecade = y % 10 === 0;
+  if (state.lang === 'zh') return isDecade ? `${y}年代` : `${y}年`;
+  if (state.lang === 'nl') return isDecade ? `jaren ${y}` : String(y);
+  return isDecade ? `${y}s` : String(y);
+}
+/* A city may have no dated map cleared for it; one must not be invented. */
+const histOf = c => (CITIES[c] && CITIES[c].hist) || null;
 const sitesOf = city => SITES.filter(s => s.city === city);
 const siteById = id => SITES.find(s => s.id === id);
 const splitFor = (city, d) => SPLIT.find(r => r.city === city && r.decade === d);
@@ -160,7 +172,8 @@ function pmtilesLayer(url, opts) {
 
 /* ---------- historical overlay ---------- */
 function histStatus(stateText, detail) {
-  const h = CITIES[state.city].hist, t = T();
+  const h = histOf(state.city), t = T();
+  if (!h) { $('#histStatus').innerHTML = `<span class="k">${t.kLayer}</span> ${t.histNone}`; return; }
   $('#histStatus').innerHTML =
     `<span class="k">${t.kLayer}</span> ${tr(h.label)}<br>` +
     `<span class="k">${t.kZoom}</span> ${h.minZoom}–${h.maxZoom} · <span class="k">${t.kStatus}</span> ${stateText}` +
@@ -169,7 +182,8 @@ function histStatus(stateText, detail) {
 function removeHist() { if (histLayer) { map.removeLayer(histLayer); histLayer = null; } }
 function addHist() {
   removeHist();
-  const h = CITIES[state.city].hist, t = T();
+  const h = histOf(state.city), t = T();
+  if (!h) { histStatus(); return; }
   if (h.kind === 'pmtiles') {
     const l = pmtilesLayer(h.url, { minZoom: h.minZoom, maxZoom: h.maxZoom,
       bounds: L.latLngBounds(h.bounds), attribution: h.attr, opacity: state.histOpa });
@@ -190,11 +204,16 @@ function addHist() {
   updateClip();
 }
 function setHist(on) {
-  state.histOn = on && !state.compare && !state.global;
+  state.histOn = on && !state.compare && !state.global && !!histOf(state.city);
   $('#histBtn').classList.toggle('active', state.histOn);
   $('#swipeBtn').disabled = !state.histOn;
   if (state.histOn) addHist();
-  else { removeHist(); setSwipe(false); $('#histStatus').innerHTML = `<span class="k">${T().kLayer}</span> ${T().layerOff}`; }
+  else {
+    removeHist(); setSwipe(false);
+    /* a city with no dated map is not 'off', it has nothing to show */
+    const why = histOf(state.city) ? T().layerOff : T().histNone;
+    $('#histStatus').innerHTML = `<span class="k">${T().kLayer}</span> ${why}`;
+  }
 }
 function setSwipe(on) {
   state.swipeOn = on && state.histOn;
@@ -316,7 +335,25 @@ function renderSheetContext() {
 }
 
 /* ---------- render ---------- */
-const visibleCities = () => state.global ? [] : state.compare ? Object.keys(CITIES) : [state.city];
+const otherCities = () => Object.keys(CITIES).filter(c => c !== state.city);
+function ensureCityB() {
+  if (!state.cityB || state.cityB === state.city || !CITIES[state.cityB]) state.cityB = otherCities()[0] || state.city;
+  return state.cityB;
+}
+const visibleCities = () => state.global ? [] : state.compare ? [state.city, ensureCityB()] : [state.city];
+
+/* Chips are built from the data so adding a city to reference.json is enough. */
+function renderCityChips() {
+  const row = $('#cityRow');
+  row.innerHTML = Object.keys(CITIES).map(k => {
+    const empty = !SPLIT.some(r => r.city === k) && !SITES.some(x => x.city === k);
+    return `<button class="city-chip${empty ? ' empty' : ''}" data-city="${k}"` +
+      (empty ? ` title="${T().cityAwaiting}"` : '') + `>` +
+      cityName(k) + (state.lang === 'en' ? '' : `<span class="en">${CITIES[k].name.en}</span>`) +
+      `</button>`;
+  }).join('');
+  $$('#cityRow .city-chip').forEach(b => b.onclick = () => selectCity(b.dataset.city));
+}
 const activeSites = list => list.filter(s => state.active.has(s.factor) && s.decade <= decade());
 const shownSites = () => activeSites(visibleCities().flatMap(sitesOf));
 
@@ -330,9 +367,10 @@ function renderYear() {
   $('#yearBig').textContent = y;
   $('#yearEra').innerHTML = tr(ERAS[y]) + (state.lang === 'en' ? '' : `<span class="sub">${ERAS[y].en}</span>`);
   $$('#yearTicks span').forEach(s => s.classList.toggle('on', +s.dataset.i <= state.di));
+  const lastStep = DECADES[DECADES.length - 1];
   $('#axisNow').textContent = onLastDecade()
-    ? T().axisNow(NOW_YEAR)
-    : `${DECADES[0]}s → ${T().today}`;
+    ? T().axisEnd(stepLabel(lastStep))
+    : `${stepLabel(DECADES[0])} → ${stepLabel(lastStep)}`;
   $('#axisNow').classList.toggle('is-now', onLastDecade());
 }
 function renderFactors() {
@@ -368,8 +406,8 @@ function renderPins() {
   }
 
   if (state.compare) {
-    drawSites(activeSites(sitesOf('mpls')), pins);
-    drawSites(activeSites(sitesOf('rdam')), pins2);
+    drawSites(activeSites(sitesOf(state.city)), pins);
+    drawSites(activeSites(sitesOf(ensureCityB())), pins2);
     return;
   }
   drawSites(shownSites(), pins);
@@ -381,6 +419,9 @@ function renderInters() {
   if (!interL) return;
   interL.clearLayers(); interL2.clearLayers();
   $('#intersBtn').classList.toggle('active', state.inters);
+  const shownCities = state.global ? [] : state.compare ? [state.city, ensureCityB()] : [state.city];
+  $('#intersBtn').querySelector('.sub').textContent =
+    T().intersCount(INTERSECTIONS.filter(x => shownCities.includes(x.city)).length);
   if (!state.inters || state.global) return;
   const draw = (city, layer) => INTERSECTIONS.filter(x => x.city === city).forEach(x => {
     const m = L.marker(x.coordinates, {
@@ -389,7 +430,7 @@ function renderInters() {
     m.bindTooltip(`${tr(x.name)} · ${T().intersAwait}`, { direction: 'top', offset: [0, -9] });
     m.on('click', () => openIntersDrawer(x.id));
   });
-  if (state.compare) { draw('mpls', interL); draw('rdam', interL2); }
+  if (state.compare) { draw(state.city, interL); draw(ensureCityB(), interL2); }
   else draw(state.city, interL);
 }
 
@@ -459,7 +500,7 @@ function openIntersDrawer(id) {
       <th><i style="background:${SPLIT_C[i]}"></i>${mode}</th>
       <td class="tbc">[TO BE CONFIRMED]</td></tr>`).join('');
   openDrawer(t.intersTitle, `
-    <span class="drawer-year">${x.id} · ${cityName(x.city)} · ${decade()}s</span>
+    <span class="drawer-year">${x.id} · ${cityName(x.city)} · ${stepLabel(decade())}</span>
     <h2>${tr(x.name)}</h2>
     <div class="caveat"><b class="ph-flag">${x.coordinatesConfirmed ? '' : t.intersLocFlag}</b>
       <p>${t.intersLocNote}</p></div>
@@ -484,7 +525,7 @@ function drawSites(list, layer) {
       : { radius: isNow ? 8 : 5, color: '#F1EFE9', weight: isNow ? 2 : 1,
           fillColor: col, fillOpacity: isNow ? .95 : .45 };
     const m = L.circleMarker(s.coordinates, style).addTo(layer);
-    m.bindTooltip(`${s.decade}s · ${tr(s.title)}${s.placeholder ? ' · ' + T().placeholderFlag : ''}`,
+    m.bindTooltip(`${stepLabel(s.decade)} · ${tr(s.title)}${s.placeholder ? ' · ' + T().placeholderFlag : ''}`,
       { direction: 'top', offset: [0, -8] });
     m.on('click', () => selectSite(s.id));
     /* a wider transparent disc keeps the point tappable on a touch screen */
@@ -529,48 +570,99 @@ function renderRecord() {
       + (src.reference ? `<br><b>REF</b> ${src.reference}` : '')
       + (src.url ? `<br><a href="${src.url}" target="_blank" rel="noopener">${t.viewSource}</a>` : '');
   r.innerHTML = `${recordMedia(s)}${rightsBadge(s)}${warn}${flag}
-    <div class="rec-tag" style="color:${f.c}">${tr(f.label)} · ${s.decade}s · ${cityName(s.city)}</div>
+    <div class="rec-tag" style="color:${f.c}">${tr(f.label)} · ${stepLabel(s.decade)} · ${cityName(s.city)}</div>
     <h3 class="rec-title">${tr(s.title)}</h3>
     <p class="rec-text">${tr(s.narrative)}</p>
     <div class="rec-src">${srcLine}<br><b>${t.recRecord}</b> ${s.id}</div>
     <button class="rec-more" type="button" id="recMore">${t.readMore}</button>`;
   $('#recMore').onclick = () => openRecordDrawer(s.id);
 }
-function renderSplit() {
-  const W = 300, H = 96, n = DECADES.length, step = W / (n - 1);
-  const chartCity = state.compare ? 'mpls' : state.city;
-  const rows = Object.fromEntries(DECADES.map(d => [d, splitFor(chartCity, d)]));
-  const anyPlaceholder = DECADES.some(d => rows[d] && rows[d].placeholder);
-  let out = '', base = new Array(n).fill(0);
-  SPLIT_C.forEach((col, k) => {
-    const top = DECADES.map((y, i) => base[i] + rows[y].values[k]);
-    const up = DECADES.map((y, i) => `${(i * step).toFixed(1)},${(H - top[i] / 100 * H).toFixed(1)}`);
-    const dn = DECADES.map((y, i) => `${(i * step).toFixed(1)},${(H - base[i] / 100 * H).toFixed(1)}`).reverse();
-    out += `<polygon points="${up.concat(dn).join(' ')}" fill="${col}" fill-opacity="${anyPlaceholder ? '.5' : '.9'}"></polygon>`;
-    base = top;
+/* Contiguous stretches that actually have a row, so a gap in the record is drawn
+   as a gap instead of being bridged by a straight line. */
+function splitRuns(rows) {
+  const runs = [];
+  let cur = [];
+  rows.forEach((r, i) => {
+    if (r) cur.push(i);
+    else if (cur.length) { runs.push(cur); cur = []; }
   });
-  if (anyPlaceholder) {
-    out = `<defs><pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#807C73" stroke-width="1" stroke-opacity=".35"></line></pattern></defs>`
-      + out + `<rect x="0" y="0" width="${W}" height="${H}" fill="url(#hatch)"></rect>`;
+  if (cur.length) runs.push(cur);
+  return runs;
+}
+
+function renderSplit() {
+  const t = T(), CW = 300, CH = 96, n = DECADES.length, step = CW / (n - 1);
+  const city = state.city;
+  const rows = DECADES.map(d => splitFor(city, d));
+  const runs = splitRuns(rows);
+  const anyPlaceholder = rows.some(r => r && r.placeholder);
+  const HATCH = `<defs><pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#807C73" stroke-width="1" stroke-opacity=".35"></line></pattern></defs>`;
+
+  let out = HATCH;
+  runs.forEach(run => {
+    let base = new Array(run.length).fill(0);
+    SPLIT_C.forEach((col, k) => {
+      const top = run.map((idx, j) => base[j] + rows[idx].values[k]);
+      const op = anyPlaceholder ? '.5' : '.9';
+      if (run.length === 1) {
+        /* a lone step has no width to sweep, so it is drawn as a narrow bar */
+        const x = Math.max(0, run[0] * step - 1.5);
+        out += `<rect x="${x.toFixed(1)}" y="${(CH - top[0] / 100 * CH).toFixed(1)}" width="3" ` +
+               `height="${((top[0] - base[0]) / 100 * CH).toFixed(1)}" fill="${col}" fill-opacity="${op}"></rect>`;
+      } else {
+        const up = run.map((idx, j) => `${(idx * step).toFixed(1)},${(CH - top[j] / 100 * CH).toFixed(1)}`);
+        const dn = run.map((idx, j) => `${(idx * step).toFixed(1)},${(CH - base[j] / 100 * CH).toFixed(1)}`).reverse();
+        out += `<polygon points="${up.concat(dn).join(' ')}" fill="${col}" fill-opacity="${op}"></polygon>`;
+      }
+      base = top;
+    });
+  });
+  if (anyPlaceholder && runs.length) out += `<rect x="0" y="0" width="${CW}" height="${CH}" fill="url(#hatch)"></rect>`;
+
+  /* stretches with no row at all read as empty, never as zero */
+  for (let i = 0; i < n; ) {
+    if (rows[i]) { i++; continue; }
+    let j = i;
+    while (j < n && !rows[j]) j++;
+    const x1 = i === 0 ? 0 : (i - 0.5) * step;
+    const x2 = j >= n ? CW : (j - 0.5) * step;
+    out += `<rect x="${x1.toFixed(1)}" y="0" width="${(x2 - x1).toFixed(1)}" height="${CH}" fill="#EAE8E2"></rect>`
+         + `<rect x="${x1.toFixed(1)}" y="0" width="${(x2 - x1).toFixed(1)}" height="${CH}" fill="url(#hatch)"></rect>`;
+    i = j;
   }
-  const x = (state.di * step).toFixed(1);
-  out += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#1F1D19" stroke-width="1"></line>`;
+
+  const cx = (state.di * step).toFixed(1);
+  out += `<line x1="${cx}" y1="0" x2="${cx}" y2="${CH}" stroke="#1F1D19" stroke-width="1"></line>`;
   $('#splitChart').innerHTML = out;
 
-  const t = T(), cur = rows[decade()];
-  let note = t.splitNote(decade(), cityName(chartCity), cur.values);
-  if (state.compare) note += ' ' + t.splitNote(decade(), cityName('rdam'), splitFor('rdam', decade()).values);
-  $('#splitNote').textContent = note;
-  $('#splitCaption').innerHTML = anyPlaceholder
-    ? `<span class="tbc">${t.placeholderFlag}</span> ${t.splitPlaceholder}<br>`
-      + `<b>${t.derivation}</b> ${cur.derivation || t.derivationNone}`
-    : t.splitCaption;
+  const cur = rows[state.di];
+  const parts = [cur
+    ? t.splitNote(stepLabel(decade()), cityName(city), cur.values)
+    : t.splitNoneStep(stepLabel(decade()), cityName(city))];
+  if (state.compare) {
+    const b = splitFor(ensureCityB(), decade());
+    parts.push(b
+      ? t.splitNote(stepLabel(decade()), cityName(state.cityB), b.values)
+      : t.splitNoneStep(stepLabel(decade()), cityName(state.cityB)));
+  }
+  $('#splitNote').textContent = parts.join(' ');
+
+  if (!runs.length) {
+    $('#splitCaption').innerHTML =
+      `<span class="tbc">${t.splitAwaiting}</span> ${t.splitNoneCity(cityName(city))}<br>${t.splitNeed}`;
+  } else if (anyPlaceholder) {
+    $('#splitCaption').innerHTML = `<span class="tbc">${t.placeholderFlag}</span> ${t.splitPlaceholder}<br>`
+      + `<b>${t.derivation}</b> ${(cur && cur.derivation) || t.derivationNone}`;
+  } else {
+    $('#splitCaption').textContent = t.splitCaption;
+  }
 }
+
 function renderMapCard() {
   const t = T();
   $('#mapKicker').textContent = t.mapKicker;
-  $('#mapYear').textContent = decade() + 's' + (onLastDecade() ? ' · ' + t.today : '');
+  $('#mapYear').textContent = stepLabel(decade());
   if (state.global) {
     $('#mapTitle').textContent = t.mapGlobalTitle;
     $('#mapSub').textContent = t.mapGlobalSub;
@@ -593,14 +685,18 @@ function render() {
   }
   renderYear(); renderFactors(); renderPins(); renderInters(); renderRecord(); renderSplit(); renderMapCard(); renderSheetContext();
   refreshPhaseActive();
-  $$('.city-chip').forEach(b => b.classList.toggle('active', b.dataset.city === state.city && !state.compare && !state.global));
+  $$('.city-chip').forEach(b => {
+    const c = b.dataset.city;
+    b.classList.toggle('active', c === state.city && !state.compare && !state.global);
+    b.classList.toggle('is-b', state.compare && c === state.cityB);
+  });
   $('#compareBtn').classList.toggle('active', state.compare);
   if (state.compare) {
-    $('#splitL').textContent = cityName('mpls');
-    $('#splitR').textContent = cityName('rdam');
+    $('#splitL').textContent = cityName(state.city);
+    $('#splitR').textContent = cityName(ensureCityB());
   }
   $('#globalBtn').classList.toggle('active', state.global);
-  $('#histBtn').disabled = state.compare || state.global;
+  $('#histBtn').disabled = state.compare || state.global || !histOf(state.city);
   syncUrl();
 }
 
@@ -624,6 +720,7 @@ function revealRecord() {
 }
 function selectCity(id, { fly = true } = {}) {
   state.city = id; state.compare = false; state.global = false; state.sel = null;
+  ensureCityB();
   updateSplit();
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === 'map'));
   if (fly) goTo(map, CITIES[id].center, CITIES[id].zoom, { duration: 1.1 });
@@ -634,9 +731,10 @@ function setCompare(on) {
   state.compare = on; state.global = false; state.sel = null;
   if (on) {
     setHist(false);
-    const z = Math.min(CITIES.mpls.zoom, CITIES.rdam.zoom);
-    map.setView(CITIES.mpls.center, z, { animate: false });
-    map2.setView(CITIES.rdam.center, z, { animate: false });
+    ensureCityB();
+    const z = Math.min(CITIES[state.city].zoom, CITIES[state.cityB].zoom);
+    map.setView(CITIES[state.city].center, z, { animate: false });
+    map2.setView(CITIES[state.cityB].center, z, { animate: false });
   } else {
     goTo(map, CITIES[state.city].center, CITIES[state.city].zoom, { duration: 1.1 });
   }
@@ -647,7 +745,8 @@ function setCompare(on) {
 /* The right-hand panel overlays the map, so the split is measured against the map area
    actually visible to the left of it, not against the viewport. */
 function layoutSplit() {
-  const avail = Math.max(320, $('.panel').getBoundingClientRect().left - 14);
+  const narrOff = state.narrDock ? $('#narr').offsetWidth : 0;
+  const avail = Math.max(320, $('.panel').getBoundingClientRect().left - 14 - narrOff);
   document.documentElement.style.setProperty('--split-x', (avail / 2) + 'px');
 }
 function updateSplit() {
@@ -655,8 +754,8 @@ function updateSplit() {
   document.body.classList.toggle('split', on);
   if (on && !mq.matches) layoutSplit();
   if (on) {
-    $('#splitL').textContent = cityName('mpls');
-    $('#splitR').textContent = cityName('rdam');
+    $('#splitL').textContent = cityName(state.city);
+    $('#splitR').textContent = cityName(ensureCityB());
   }
   /* map2 is built inside a display:none container, so Leaflet starts with a zero size.
      Resizing it while still hidden makes Leaflet compute a NaN centre and throw, which
@@ -793,10 +892,12 @@ function closeDrawer() {
   $('#drawer').setAttribute('aria-hidden', 'true');
   $('.drawer-backdrop').classList.remove('open');
 }
-function openStoryDrawer() {
+/* The narrative reads as a column beside the map, the way the CMU Telegraph project
+   sets it out, rather than as a drawer that covers the thing it describes. A phone has
+   no room for two columns, so there it stays an overlay. */
+function narrativeHTML() {
   const t = T();
-  openDrawer(t.drawerStory, `
-    <span class="drawer-year">${t.narrTitle}</span>
+  return `
     <h2>${t.narrTitle}</h2>
     <p class="lead">${t.narrIntro}</p>
     <div class="phases">${STORIES.map(phaseCard).join('')}</div>
@@ -804,14 +905,46 @@ function openStoryDrawer() {
     <h3>${t.storyQ2}</h3><p>${t.storyA2}</p>
     <div class="source-box"><b>${t.storyBox}</b><p>${t.storyBoxBody}</p></div>
     <p class="model-note">${t.narrModel}
-      <a href="https://telegraph.library.cmu.edu/" target="_blank" rel="noopener">telegraph.library.cmu.edu</a></p>`);
-  $$('#drawerBody .phase-go').forEach(b => b.onclick = () => {
-    const i = DECADES.indexOf(+b.closest('.phase').dataset.decade);
+      <a href="https://telegraph.library.cmu.edu/" target="_blank" rel="noopener">telegraph.library.cmu.edu</a></p>`;
+}
+
+function bindPhases(root) {
+  $$('.phase-go', root).forEach(b => b.onclick = () => {
+    const card = b.closest('.phase');
+    const i = DECADES.indexOf(+card.dataset.decade);
     if (i >= 0) setDecade(i);
-    if (mq.matches) closeDrawer();
-    else b.closest('.phase').scrollIntoView({ block: 'nearest' });
+    if (mq.matches && root.id === 'drawerBody') closeDrawer();
+    else card.scrollIntoView({ block: 'nearest' });
   });
   refreshPhaseActive();
+}
+
+const NARR_KEY = 'cc.narr.v1';
+function setNarrDock(on) {
+  state.narrDock = !!on;
+  /* the state class must not collide with the component class, or every #narr rule
+     would also match <body> */
+  document.body.classList.toggle('narr-open', state.narrDock);
+  $('#narr').hidden = !state.narrDock;
+  if (state.narrDock && !mq.matches) {
+    $('#narrEyebrow').textContent = T().drawerStory;
+    $('#narrBody').innerHTML = narrativeHTML();
+    bindPhases($('#narrBody'));
+  }
+  try { localStorage.setItem(NARR_KEY, state.narrDock ? '1' : '0'); } catch { /* private mode */ }
+  const resize = () => {
+    if (state.compare && !mq.matches) layoutSplit();
+    map.invalidateSize();
+    if (map2) map2.invalidateSize();
+  };
+  requestAnimationFrame(resize);
+  setTimeout(resize, 260);
+}
+
+function openStoryDrawer() {
+  if (!mq.matches) { setNarrDock(true); return; }
+  openDrawer(T().drawerStory, `<span class="drawer-year">${T().narrTitle}</span>` + narrativeHTML());
+  bindPhases($('#drawerBody'));
 }
 
 /* One narrative period. The body text is prototype copy; the draft block below it is
@@ -819,7 +952,7 @@ function openStoryDrawer() {
    be that narrative. No image is embedded until rights are cleared (plan §1.1). */
 function phaseCard(st, i) {
   const t = T(), f = fc(st.factor);
-  const span = st.from === st.to ? `${st.from}s` : `${st.from}s–${st.to}s`;
+  const span = st.from === st.to ? stepLabel(st.from) : `${stepLabel(st.from)}–${stepLabel(st.to)}`;
   return `<article class="phase" data-decade="${st.from}">
     <header>
       <span class="phase-n">${t.narrPhase} ${String(i + 1).padStart(2, '0')}</span>
@@ -840,7 +973,7 @@ function phaseCard(st, i) {
 }
 
 function refreshPhaseActive() {
-  const cards = $$('#drawerBody .phase');
+  const cards = $$('.phase');
   if (!cards.length) return;
   const t = T(), cur = storyAt(decade());
   cards.forEach(el => {
@@ -873,7 +1006,7 @@ function openSourcesDrawer() {
       <td class="mono">${rights}</td></tr>`;
   });
   openDrawer(t.drawerSources, `
-    <span class="drawer-year">${(visibleCities().length ? visibleCities() : [state.city]).map(cityName).join(' · ')} · ≤ ${decade()}s</span>
+    <span class="drawer-year">${(visibleCities().length ? visibleCities() : [state.city]).map(cityName).join(' · ')} · ≤ ${stepLabel(decade())}</span>
     <h2>${t.sourcesTitle}</h2>
     <p class="lead">${t.sourcesLead}</p>
     <table class="source-table">
@@ -914,7 +1047,7 @@ function openRecordDrawer(id) {
   const t = T(), s = siteById(id), f = fc(s.factor);
   const cite = citationFor(id);
   openDrawer(t.drawerRecord, `
-    <span class="drawer-year">${s.decade}s · ${cityName(s.city)} · ${tr(f.label)}</span>
+    <span class="drawer-year">${stepLabel(s.decade)} · ${cityName(s.city)} · ${tr(f.label)}</span>
     <h2>${tr(s.title)}</h2>
     ${s.placeholder ? `<div class="ph-flag"><b>${t.placeholderFlag}</b>${t.placeholderBody}</div>` : ''}
     <p class="lead">${tr(s.narrative)}</p>
@@ -931,11 +1064,11 @@ function openRecordDrawer(id) {
 function searchIndex() {
   const t = T(), out = [];
   Object.keys(CITIES).forEach(c => out.push({ kind: t.kindCity, label: cityName(c), sub: CITIES[c].name.en, run: () => selectCity(c) }));
-  DECADES.forEach((y, i) => out.push({ kind: t.kindDecade, label: `${y}s`, sub: tr(ERAS[y]), run: () => setDecade(i) }));
+  DECADES.forEach((y, i) => out.push({ kind: t.kindDecade, label: stepLabel(y), sub: tr(ERAS[y]), run: () => setDecade(i) }));
   FACTORS.forEach(f => out.push({ kind: t.kindFactor, label: tr(f.label), sub: tr(f.sub), run: () => { state.active = new Set([f.id]); render(); } }));
   SITES.forEach(s => out.push({
     kind: t.kindSite, label: tr(s.title),
-    sub: `${cityName(s.city)} · ${s.decade}s${s.placeholder ? ' · ' + t.placeholderFlag : ''}`,
+    sub: `${cityName(s.city)} · ${stepLabel(s.decade)}${s.placeholder ? ' · ' + t.placeholderFlag : ''}`,
     run: () => {
       selectCity(s.city, { fly: false });
       setDecade(DECADES.indexOf(s.decade));
@@ -1001,6 +1134,11 @@ function applyLang() {
   $('#tourBtn').setAttribute('aria-label', t.tourStart);
   $('#tourBtn').setAttribute('title', t.tourStart);
   if (tourOpen()) showTourStep();
+  if (state.narrDock) {
+    $('#narrEyebrow').textContent = t.drawerStory;
+    $('#narrBody').innerHTML = narrativeHTML();
+    bindPhases($('#narrBody'));
+  }
   $('#contribBtn').querySelector('span').textContent = t.contribute;
 
   $('#headEyebrow').textContent = t.eyebrow;
@@ -1012,16 +1150,14 @@ function applyLang() {
     el.querySelector('.en').textContent = t.slSub[i];
   });
 
-  $$('.city-chip').forEach(b => {
-    const k = b.dataset.city;
-    b.innerHTML = cityName(k) + (state.lang === 'en' ? '' : `<span class="en">${CITIES[k].name.en}</span>`);
-  });
-  $('#swapBtn').setAttribute('aria-label', t.swap);
+  renderCityChips();
+  $('#swapBtn').setAttribute('aria-label', t.swapNext);
+  $('#swapBtn').setAttribute('title', t.swapNext);
   $('#sheetGrip').setAttribute('aria-label', t.sheetLabel);
   $('#compareBtn').querySelector('.t').textContent = t.compareTitle;
-  $('#compareBtn').querySelector('.sub').textContent = t.compareSub;
+  $('#compareBtn').querySelector('.sub').textContent = t.compareWith(cityName(ensureCityB()));
   $('#intersBtn').querySelector('.t').textContent = t.intersToggle;
-  $('#intersBtn').querySelector('.sub').textContent = t.intersSub;
+  /* the junction count is filled by renderInters, which knows the current city */
   $('#globalBtn').querySelector('.t').textContent = t.globalTitle;
   $('#globalBtn').querySelector('.en').textContent = t.globalCount;
   $('#playBtn').setAttribute('aria-label', state.playing ? t.pause : t.play);
@@ -1076,7 +1212,7 @@ function applyLang() {
   $('#pinStore').textContent = t.pinStore;
   $('#pinOutLbl').textContent = t.pinOutLbl;
   refreshPinOut();
-  $('#pinDecade').innerHTML = DECADES.map(y => `<option value="${y}">${y}s</option>`).join('');
+  $('#pinDecade').innerHTML = DECADES.map(y => `<option value="${y}">${stepLabel(y)}</option>`).join('');
   $('#pinDecade').value = String(decade());
 
   if (state.histOn && histLayer) histStatus(t.ready);
@@ -1098,6 +1234,12 @@ function bindEvents() {
   });
   $$('.city-chip').forEach(b => b.onclick = () => selectCity(b.dataset.city));
   $('#swapBtn').onclick = () => {
+    if (state.compare) {
+      const others = otherCities();
+      state.cityB = others[(others.indexOf(ensureCityB()) + 1) % others.length];
+      setCompare(true);
+      return;
+    }
     const ids = Object.keys(CITIES);
     selectCity(ids[(ids.indexOf(state.city) + 1) % ids.length]);
   };
@@ -1121,9 +1263,10 @@ function bindEvents() {
   $('#fitBtn').onclick = () => {
     if (state.global) goTo(map, [22, 12], 2.2, { duration: .9 });
     else if (state.compare) {
-      const z = Math.min(CITIES.mpls.zoom, CITIES.rdam.zoom);
-      goTo(map, CITIES.mpls.center, z, { duration: .9 });
-      goTo(map2, CITIES.rdam.center, z, { duration: .9 });
+      ensureCityB();
+      const z = Math.min(CITIES[state.city].zoom, CITIES[state.cityB].zoom);
+      goTo(map, CITIES[state.city].center, z, { duration: .9 });
+      goTo(map2, CITIES[state.cityB].center, z, { duration: .9 });
     }
     else goTo(map, CITIES[state.city].center, CITIES[state.city].zoom, { duration: .9 });
   };
@@ -1159,6 +1302,7 @@ function bindEvents() {
     catch { $('#pinOut').select(); }   /* clipboard blocked: let the contributor copy by hand */
   };
   $('#menuBtn').onclick = () => mq.matches ? cycleSheet() : $('#panel').scrollTo({ top: 0, behavior: 'smooth' });
+  $('#narrClose').onclick = () => setNarrDock(false);
   $('#tourBtn').onclick = startTour;
   $('#tourSkip').onclick = endTour;
   $('#tourBack').onclick = () => moveTour(-1);
@@ -1196,8 +1340,14 @@ function bindEvents() {
   bindDividerDrag();
   bindSheetDrag();
   mq.addEventListener('change', applyLayout);
+  mq.addEventListener('change', () => { if (state.narrDock) setNarrDock(true); });
+  /* matchMedia 'change' is the normal signal, but a resize that crosses the breakpoint
+     must never leave the decade block stranded in the mobile sheet, so check here too. */
+  let wasNarrow = mq.matches;
   addEventListener('resize', () => {
+    if (mq.matches !== wasNarrow) { wasNarrow = mq.matches; applyLayout(); }
     if (mq.matches) setSheet(state.sheet, { animate: false });
+    if (state.compare && !mq.matches) layoutSplit();
     if (tourOpen()) placeTour(TOUR[tourAt]);
   });
 }
@@ -1213,6 +1363,9 @@ loadData().then(() => {
   applyLang();
   document.body.classList.add('ready');
   setTimeout(() => map.invalidateSize(), 60);
+  let dockWanted = false;
+  try { dockWanted = localStorage.getItem(NARR_KEY) === '1'; } catch { /* private mode */ }
+  if (dockWanted) setNarrDock(true);
   const wants = params.get('tour');
   if (wants === '1' || (wants !== '0' && !tourSeen())) setTimeout(startTour, 700);
 }).catch(showLoadError);

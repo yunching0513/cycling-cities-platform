@@ -25,7 +25,7 @@ Empty is safe; a guess is not.
 | Column | What it holds |
 |---|---|
 | `city_name` | Riga, Budapest, Lisbon, … as you would write it in English |
-| `city_slug` | short lowercase id, e.g. `riga`. Use the same slug on every row |
+| `city_slug` | the id the platform already uses: `riga`, `buda`, `lisb`. Same slug on every row |
 | `point_id` | your own id for the point, e.g. `RIGA-INT-001`. Reused across years |
 | `point_name` | the junction or street, as a reader would recognise it |
 | `lat`, `lon` | decimal degrees, WGS84. Five decimal places is plenty |
@@ -123,6 +123,15 @@ notes           "horse-drawn traffic was 11 per cent of the total and has no buc
 
 The angle brackets are gaps for you to fill. The two quoted fields show the shape of a
 real answer.
+
+## Your city is already in the tool
+
+Riga, Budapest and Lisbon are selectable now, with no records of their own. Open the
+tool, pick your city, and section 05 will say that no modal split figures have been
+supplied yet. That empty state is what your rows fill.
+
+The historical overlay is switched off for the three new cities: no dated, rights-cleared
+map has been found for them yet. If you have one, say so.
 
 ## What happens to a submitted row
 

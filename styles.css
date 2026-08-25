@@ -489,14 +489,17 @@ html:not([data-lang="zh"]) .drawer-body .phase h4{font-family:var(--en-serif);fo
 
 .drawer-body .model-note{font-size:11px;line-height:1.75;color:var(--silver);margin-top:16px}
 .drawer-body .model-note a{color:var(--vermilion)}
+/* the narrative column offsets everything that sits over the map */
+:root{--narr-w:360px;--narr-off:0px}
+body.narr-open{--narr-off:var(--narr-w)}
 /* ---------- side-by-side city comparison ---------- */
 :root{--split-x:50%}
-#map2{position:absolute;top:var(--top);bottom:0;left:var(--split-x);
-  right:calc(100% - 2 * var(--split-x));display:none;background:var(--paper-2);
+#map2{position:absolute;top:var(--top);bottom:0;left:calc(var(--narr-off) + var(--split-x));
+  right:calc(100% - var(--narr-off) - 2 * var(--split-x));display:none;background:var(--paper-2);
   border-left:1px solid var(--ink)}
-body.split #map{right:calc(100% - var(--split-x))}
+body.split #map{right:calc(100% - var(--narr-off) - var(--split-x))}
 body.split #map2{display:block}
-.split-labels{position:absolute;top:calc(var(--top) + 14px);left:0;
+.split-labels{position:absolute;top:calc(var(--top) + 14px);left:var(--narr-off);
   width:calc(2 * var(--split-x));z-index:620;display:none;pointer-events:none}
 body.split .split-labels{display:flex}
 /* the prototype notice shares the top-left corner, so it drops below the label row */
@@ -568,7 +571,43 @@ html:not([data-lang="zh"]) .tour-tip h3{font-family:var(--en-serif);font-size:19
 .tour-bar button:disabled{opacity:.35;cursor:default}
 .tour-skip{border-color:transparent;color:var(--silver)}
 .tour-skip:hover:not(:disabled){border-color:transparent;color:var(--vermilion)}
+/* ---------- city chips grow with the data ---------- */
+.city-row{display:flex;flex-wrap:wrap;gap:6px}
+.city-row .city-chip{flex:1 1 calc(50% - 3px);min-width:0}
+/* a city that has been added but has no records yet reads as pending, not broken */
+.city-chip.empty{border-style:dashed;color:var(--ash)}
+.city-chip.empty .en{color:var(--silver)}
+.city-chip.is-b{border-color:var(--graphite);color:var(--graphite)}
+.city-chip.is-b::after{content:'B';position:absolute;top:2px;right:4px;
+  font-family:var(--mono);font-size:7px;color:var(--graphite)}
+.city-chip{position:relative}
+.compare-row{display:flex;gap:6px;align-items:stretch;margin-top:6px}
+.compare-row .btn{flex:1;margin-top:0}
+.compare-row .swap-btn{flex:0 0 auto;align-self:stretch}
+/* ---------- narrative docked beside the map ---------- */
+#narr{position:absolute;top:var(--top);bottom:0;left:0;width:var(--narr-w);z-index:900;
+  display:flex;flex-direction:column;background:var(--paper);
+  border-right:1px solid var(--stone);box-shadow:1px 0 0 var(--mist)}
+#narr[hidden]{display:none}
+.narr-head{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 13px;border-bottom:1px solid var(--ink);position:relative;flex:0 0 auto}
+.narr-head::after{content:'';position:absolute;bottom:-1px;left:20px;width:48px;height:3px;
+  background:var(--vermilion)}
+.narr-head .eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ash)}
+.narr-head button{border:0;background:none;cursor:pointer;padding:2px}
+.narr-head svg{width:16px;height:16px;stroke:var(--ash);stroke-width:1.5;fill:none;stroke-linecap:round}
+.narr-head button:hover svg{stroke:var(--vermilion)}
+.narr-body{padding:20px;overflow-y:auto;flex:1}
+/* everything that floats over the map steps aside for the column */
+#map{left:var(--narr-off)}
+body.narr-open .map-tools,body.narr-open .map-bottom-left{left:calc(var(--narr-off) + 16px)}
+body.narr-open .prototype-notice{left:calc(var(--narr-off) + 62px)}
+body.narr-open #divider,body.narr-open .split-labels{left:var(--narr-off)}
 @media(max-width:760px){
+  /* a phone has no room for a second column: the narrative stays an overlay */
+  #narr{display:none!important}
+  body.narr-open{--narr-off:0px}
   /* the tour card spans the phone width and sits clear of the sheet grip */
   .tour-tip{width:calc(100vw - 24px)}
   .tour-bar button{padding:10px 12px}

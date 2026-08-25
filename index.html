@@ -74,6 +74,16 @@
       </div>
     </header>
 
+    <aside class="narr" id="narr" hidden>
+      <div class="narr-head">
+        <span class="eyebrow" id="narrEyebrow"></span>
+        <button type="button" id="narrClose">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="narr-body drawer-body" id="narrBody"></div>
+    </aside>
+
     <div id="map"></div>
     <div id="map2"></div>
     <div class="split-labels" id="splitLabels" aria-hidden="true">
@@ -132,16 +142,15 @@
       <div class="nav-slot" id="navSlot"></div>
 
       <div class="section-label" id="sl1"><span class="num">01</span><span class="txt"></span><span class="en"></span></div>
-      <div class="city-row">
-        <button class="city-chip active" data-city="mpls"></button>
+      <div class="city-row" id="cityRow"></div>
+      <div class="compare-row">
+        <button class="btn" id="compareBtn" type="button">
+          <span class="dot"></span><span><span class="t"></span><span class="sub"></span></span>
+        </button>
         <button class="swap-btn" id="swapBtn" type="button">
           <svg viewBox="0 0 24 24"><path d="m8 7-3 3 3 3M5 10h13M16 17l3-3-3-3M19 14H6"/></svg>
         </button>
-        <button class="city-chip" data-city="rdam"></button>
       </div>
-      <button class="btn" id="compareBtn" type="button">
-        <span class="dot"></span><span><span class="t"></span><span class="sub"></span></span>
-      </button>
       <button class="btn" id="globalBtn" type="button">
         <span class="dot"></span><span class="t"></span><span class="en"></span>
       </button>
