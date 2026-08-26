@@ -29,7 +29,7 @@ whether a term has expired.
 
 | Column | What it holds |
 |---|---|
-| `city_slug` | `mpls`, `rdam`, `riga`, `buda`, `lisb`, `tehr`, `tpe` |
+| `city_slug` | `mpls`, `rdam`, `riga`, `buda`, `lisb`, `tehr` |
 | `image_id` | your own id, e.g. `TEHR-IMG-001` |
 | `site_id` | the site record this belongs to, if there is one. Leave empty otherwise |
 | `caption_en` | one sentence in English, as a reader would want it under the picture |
