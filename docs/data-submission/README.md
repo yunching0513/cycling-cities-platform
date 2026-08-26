@@ -1,70 +1,153 @@
-# Contributing data
+# How to send us your data
 
-Three kinds of contribution, three templates, one process.
+This page walks you through it once, from start to finish. It should take about ten
+minutes to read. You do not need any software beyond a spreadsheet program and email.
 
-| What you have | Template | Guide |
-|---|---|---|
-| Modal split counts | `modal-split-template.csv` | [MODAL-SPLIT.md](MODAL-SPLIT.md) |
-| Historic images | `image-template.csv` | [IMAGES.md](IMAGES.md) |
-| Narrative text | `story-template.csv` | [STORIES.md](STORIES.md) |
 
-## The process, end to end
+## Before anything else
 
-There is no upload button. That is deliberate, and it is worth a sentence of
-explanation: the platform's rule is that no figure, picture or claim appears unless the
-file says where it came from and a named person checked it. A form that writes straight
-into the live site would remove the person.
+There is no upload button on the website, and that is on purpose.
 
-So the process is:
+The rule this project works to is that nothing appears in the tool unless the file says
+where it came from and a named person has checked it. A form that wrote straight into
+the live site would remove the person, so instead you send us a file and we load it.
 
-**1. You fill in a template.** One row per point per year, per image, or per period.
-Leave a field empty rather than guessing. Empty is safe; a guess is not.
+The practical effect for you is good: you are never blocked waiting for a login, and
+nothing you send can be quietly altered without it showing up in the record.
 
-**2. You send it back**, with image files or links to them.
 
-**3. The maintainer checks it** against the source where possible, and loads it into the
-data files.
+## Step 1. Work out which kind of contribution you have
 
-**4. It appears in the tool, marked as unconfirmed.** A hollow dashed marker on the map.
-The citation button refuses to copy it. Section 05 shows it with a hatched overlay.
+There are three, and they are separate. Most people have one; some have all three.
 
-**5. A second reader verifies it** against the source and signs `verified_by` and
-`verified_on`. The marker becomes solid and the record becomes citable.
+Counts of how people travelled, at a place, in a year. Use
+`modal-split-template.csv`, and read `MODAL-SPLIT.md`.
 
-Steps 4 and 5 are separate on purpose. Your work is visible and usable from step 4. It
-just does not yet claim to be checked.
+Historic photographs, prints or scans. Use `image-template.csv`, and read
+`IMAGES.md`.
 
-## How long each step takes
+Written narrative about a period in your city. Use `story-template.csv`, and read
+`STORIES.md`.
 
-Loading a template into the site takes minutes, and the site redeploys itself within
-about a minute of the change. So a batch sent on Monday is visible on Monday.
+If you have two kinds, send two files. Do not try to combine them.
 
-Verification takes as long as verification takes. That is the honest answer, and it is
-why the two steps are separate.
 
-## Images have one extra gate
+## Step 2. Open the template
 
-An image is not embedded until its rights are cleared, and rights are separate from
-everything else. You can have the file, the catalogue entry and the credit, and still
-not be allowed to publish it on a public website.
+Each template is a `.csv` file: a plain spreadsheet with a header row and nothing else.
+Open it in Excel, Numbers, LibreOffice or Google Sheets. Do not rename the columns and
+do not reorder them.
 
-Until that is resolved the record shows a link to the archive and the credit, not the
-picture. That state is correct and can last indefinitely. It is not a failure.
+One row is one thing. For counts, that is one place in one year, so the same junction
+counted in 1934 and 1938 is two rows. For images, one row is one image. For narrative,
+one row is one period.
 
-See [IMAGES.md](IMAGES.md) for what determines it.
 
-## If you are not sure a field applies
+## Step 3. Fill it in, and leave gaps where there are gaps
 
-Write what you know in `notes` and leave the field empty. Every template has a notes
-column, and it is read.
+This is the part that matters most, so it is worth saying plainly.
 
-## Questions worth asking before you start
+If you do not know what goes in a field, leave it empty. Do not put a zero, a guess, a
+dash or the word "unknown". An empty field is read as "not yet established", which is a
+true statement and causes no harm. A guess looks exactly like a fact once it is in the
+file, and nobody downstream can tell the difference.
 
-- Does your source use categories that do not fit the four modes the interface shows?
-  Almost certainly, if it is interwar. See the mapping columns in
-  [MODAL-SPLIT.md](MODAL-SPLIT.md); do not squash them silently.
-- Do you have a georeferenced historical map for your city? The tool can carry one dated
-  map layer per period and currently has one, for Rotterdam in 1900. The five newer
-  cities have none, and the overlay control is switched off for them until they do.
-- Is your image later or earlier than the period it will sit under? Say so. The interface
-  has a field for exactly that and will show it beside the picture.
+The one exception is a real zero. If your source states that nobody arrived by bicycle,
+write 0, and say so in the notes.
+
+Every template has a notes column. It is read. If something does not fit, write what you
+know there rather than forcing it into a column where it does not belong.
+
+
+## Step 4. Send it back
+
+Email the file to the maintainer, with any image files attached or linked.
+
+If your files are large, a link to a shared folder is easier than an attachment.
+
+Tell us in the email if anything in the batch is provisional, or if you are still
+waiting on an archive to answer you. That saves a round of questions.
+
+
+## Step 5. What happens next, and how long it takes
+
+Loading your file into the tool takes minutes, and the site rebuilds itself about a
+minute after that. A batch sent on Monday morning is usually visible on Monday.
+
+When it first appears, your data is marked as unconfirmed. On the map it is a hollow
+marker with a dashed edge. The citation button refuses to copy it. The chart shows it
+behind a hatched pattern.
+
+That is not a criticism of your work. It means one thing only: nobody has yet sat down
+with your row and the original source side by side.
+
+Later, a reviewer does exactly that, and signs the record. The marker becomes solid and
+the record can be cited.
+
+The two steps are deliberately separate so that your work is visible and usable
+immediately, without the tool claiming more for it than is true yet.
+
+
+## A note for people sending images
+
+Images have one more gate, and it catches almost everybody, so please read this even if
+you are sure.
+
+Having the file is not the same as being allowed to publish it. An archive may let you
+photograph a print in its reading room, catalogue it, and reproduce it in a thesis, and
+still not permit it on a public website. Those are different permissions, granted
+separately.
+
+So the tool will not display an image until its rights are settled. Until then the
+record shows a link to the archive and the credit, which is the correct state for an
+image whose rights are unresolved, and it can stay that way for as long as it needs to.
+
+Writing "unresolved" in the rights column is a perfectly good answer. It tells us the
+image exists and where it is, which is genuinely useful on its own.
+
+
+## A note for people writing narrative
+
+The text goes in a narrow column beside a moving map, so it has to be short. The
+existing entries are four to seven words for a title and twenty-two to thirty words for
+the paragraph. Those are the real numbers, not a rough guide.
+
+If your argument needs three hundred words, this is not the place for it. Put the short
+version in the template and link the long version in the sources column.
+
+
+## Questions people ask
+
+*My source counts trams and buses separately, and also counts horse carts. The tool
+shows four modes. What do I do?*
+
+Write the categories exactly as your source words them in the `original_categories`
+column, then explain in `mapping_notes` how you folded them into four. Do not squash
+them silently. If several people report the same problem, that is a good argument for
+changing the interface, and we can only see that if you write it down.
+
+*My photograph is from 1938 but the period is the 1920s to 1940s. Is that a problem?*
+
+No, but say so in the caveat column. The tool has a field for exactly this and shows it
+beside the picture. One record already carries a note that its image shows Amsterdam
+rather than Rotterdam.
+
+*I only have three rows. Is that worth sending?*
+
+Yes. Three verified rows are worth more than thirty unverified ones.
+
+*Can I see my data in the tool before it is checked?*
+
+Yes, that is what step 5 describes. It appears marked as unconfirmed.
+
+*What if I get something wrong and it is already published?*
+
+Tell us. It is corrected in the file, the correction is recorded, and the site updates.
+Nothing is hidden.
+
+
+## The templates
+
+    modal-split-template.csv    counts        see MODAL-SPLIT.md
+    image-template.csv          photographs   see IMAGES.md
+    story-template.csv          narrative     see STORIES.md
