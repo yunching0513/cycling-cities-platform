@@ -899,6 +899,143 @@ function placeTour(step) {
   $('#tourNext').focus({ preventScroll: true });
 }
 
+/* ---------- guided contribution ----------
+   Three tracks, each ending in the same place: a template to fill and an address to
+   send it to. Nothing uploads from here, and the flow says so at the step where a
+   contributor would otherwise expect an upload button. */
+const DOCS = './docs/data-submission/';
+let contribTrack = null;
+
+function renderContribute() {
+  const t = T();
+  const step = n => `<span class="contrib-step">${t.contribStep(n)}</span>`;
+
+  if (!contribTrack) {
+    $('#contribOptions').innerHTML = step(1) + `<h3>${t.contribPick}</h3>` +
+      `<div class="contrib-tracks">${t.contribTracks.map(([id, label, sub]) =>
+        `<button type="button" class="contrib-track" data-track="${id}">
+           <b>${label}</b><span>${sub}</span>
+         </button>`).join('')}</div>`;
+    $$('#contribOptions .contrib-track').forEach(b => b.onclick = () => {
+      contribTrack = b.dataset.track;
+      renderContribute();
+    });
+    return;
+  }
+
+  const [, label, , needs, file, guide] = t.contribTracks.find(x => x[0] === contribTrack);
+  $('#contribOptions').innerHTML =
+    `<button type="button" class="contrib-back" id="contribBack">${t.contribBack}</button>` +
+    step(2) + `<h3>${label}</h3>` +
+    `<p class="contrib-sub">${t.contribNeeds}</p>` +
+    `<ul class="contrib-needs">${needs.map(n => `<li>${n}</li>`).join('')}</ul>` +
+    `<div class="contrib-rule">${t.contribRule}</div>` +
+    `<div class="contrib-actions">
+       <a class="btn contrib-dl" href="${DOCS}${file}" download>${t.contribDownload}</a>
+       <a class="contrib-guide" href="${DOCS}${guide}" target="_blank" rel="noopener">${t.contribGuide}</a>
+     </div>` +
+    step(3) + `<h3>${t.contribSendH}</h3><p class="contrib-p">${t.contribSend}</p>` +
+    step(4) + `<h3>${t.contribNextH}</h3><p class="contrib-p">${t.contribNext}</p>`;
+  $('#contribBack').onclick = () => { contribTrack = null; renderContribute(); };
+}
+
+/* ---------- record review ----------
+   A reviewer needs no account, because reviewing produces a proposal rather than a
+   change: the decisions below are copied out and applied by hand. The only write path
+   remains the maintainer's, so there is nothing here to protect with a login. */
+const reviewState = new Map();
+
+function reviewable() {
+  return SITES.filter(s => s.placeholder)
+    .sort((a, b) => a.city.localeCompare(b.city) || a.decade - b.decade);
+}
+/* A record with no citation cannot be checked against anything, so it is triaged.
+   One that has a citation can be verified in the ordinary sense. */
+const hasSource = s => !!(s.source && s.source.citation && s.source.citation !== '[TO BE CONFIRMED]');
+
+function openReview() {
+  const t = T();
+  $('#reviewEyebrow').textContent = t.dataStatus;
+  $('#reviewTitle').textContent = t.reviewTitle;
+  $('#reviewLead').textContent = t.reviewLead;
+  $('#reviewNameLbl').textContent = t.reviewName;
+  $('#reviewName').placeholder = t.reviewNamePh;
+  $('#reviewOutLbl').textContent = t.reviewOutLbl;
+  $('#reviewCopy').querySelector('.t').textContent = t.reviewCopy;
+  renderReviewQueue();
+  $('#reviewDialog').showModal();
+}
+
+function renderReviewQueue() {
+  const t = T(), list = reviewable();
+  if (!list.length) { $('#reviewQueue').innerHTML = `<p class="review-empty">${t.reviewEmpty}</p>`; return; }
+
+  let lastCity = null;
+  $('#reviewQueue').innerHTML = list.map(s => {
+    const head = s.city === lastCity ? '' : `<h3 class="review-city">${cityName(s.city)}</h3>`;
+    lastCity = s.city;
+    const choices = hasSource(s)
+      ? [['ok', t.reviewMatches], ['fix', t.reviewFix], ['cant', t.reviewCant]]
+      : [['keep', t.reviewKeepWith], ['find', t.reviewKeepFind], ['drop', t.reviewDrop]];
+    const cur = reviewState.get(s.id) || {};
+    const f = fc(s.factor);
+    return head + `<article class="review-row" data-id="${s.id}">
+      <header>
+        <span class="review-id">${s.id}</span>
+        <span class="review-step">${stepLabel(s.decade)}</span>
+        <span class="review-factor" style="--fc:${f.c}">${tr(f.label)}</span>
+      </header>
+      <h4>${tr(s.title)}</h4>
+      <p class="review-narr">${tr(s.narrative) || ''}</p>
+      <p class="review-cite">${hasSource(s) ? s.source.citation : `<span class="tbc">${t.reviewNoCite}</span>`}</p>
+      <div class="review-choices">${choices.map(([k, label]) =>
+        `<button type="button" data-c="${k}"${cur.choice === k ? ' class="on"' : ''}>${label}</button>`).join('')}</div>
+      <input type="text" class="review-src" placeholder="${t.reviewSourcePh}" value="${(cur.source || '').replace(/"/g, '&quot;')}" ${cur.choice === 'keep' || cur.choice === 'fix' ? '' : 'hidden'} />
+      <input type="text" class="review-note" placeholder="${t.reviewNotePh}" value="${(cur.note || '').replace(/"/g, '&quot;')}" />
+    </article>`;
+  }).join('');
+
+  $$('#reviewQueue .review-row').forEach(row => {
+    const id = row.dataset.id;
+    $$('button', row).forEach(b => b.onclick = () => {
+      const cur = reviewState.get(id) || {};
+      cur.choice = cur.choice === b.dataset.c ? null : b.dataset.c;
+      reviewState.set(id, cur);
+      $$('button', row).forEach(x => x.classList.toggle('on', x.dataset.c === cur.choice));
+      /* a source box only makes sense where a source is being supplied */
+      row.querySelector('.review-src').hidden = !(cur.choice === 'keep' || cur.choice === 'fix');
+      refreshReviewOut();
+    });
+    row.querySelector('.review-src').addEventListener('input', e => {
+      const cur = reviewState.get(id) || {}; cur.source = e.target.value; reviewState.set(id, cur); refreshReviewOut();
+    });
+    row.querySelector('.review-note').addEventListener('input', e => {
+      const cur = reviewState.get(id) || {}; cur.note = e.target.value; reviewState.set(id, cur); refreshReviewOut();
+    });
+  });
+  refreshReviewOut();
+}
+
+function refreshReviewOut() {
+  const t = T(), list = reviewable();
+  const decided = list.filter(s => (reviewState.get(s.id) || {}).choice);
+  $('#reviewCount').textContent = t.reviewCount(decided.length, list.length);
+  $('#reviewOut').value = JSON.stringify({
+    reviewedBy: $('#reviewName').value.trim() || '[TO BE CONFIRMED]',
+    reviewedOn: null,
+    tool: 'Cycling Cities Tool 2 review queue',
+    decisions: decided.map(s => {
+      const c = reviewState.get(s.id);
+      return {
+        id: s.id,
+        decision: c.choice,
+        source: c.source ? c.source.trim() : null,
+        note: c.note ? c.note.trim() : null
+      };
+    })
+  }, null, 2);
+}
+
 /* ---------- drawer ---------- */
 function openDrawer(eyebrow, html) {
   $('#drawerEyebrow').textContent = eyebrow;
@@ -1214,9 +1351,7 @@ function applyLang() {
   $('#contribEyebrow').textContent = t.contribEyebrow;
   $('#contribTitle').innerHTML = t.contribTitle;
   $('#contribBody').textContent = t.contribBody;
-  $('#contribOptions').innerHTML = t.contribOptions.map(([b, s], i) =>
-    `<button type="button"><span>0${i + 1}</span><span><b>${b}</b><small>${s}</small></span></button>`).join('');
-  $$('#contribOptions button').forEach(b => b.onclick = () => toast(T().tContrib));
+  renderContribute();
   $('#contribNote').textContent = t.contribNote;
   $('#pinBtn').querySelector('.t').textContent = t.pinOption;
   $('#pinBtn').querySelector('.sub').textContent = t.pinOptionSub;
@@ -1324,6 +1459,15 @@ function bindEvents() {
   };
   $('#menuBtn').onclick = () => mq.matches ? cycleSheet() : $('#panel').scrollTo({ top: 0, behavior: 'smooth' });
   $('#narrClose').onclick = () => setNarrDock(false);
+  $('#reviewClose').onclick = () => $('#reviewDialog').close();
+  $('#reviewDialog').addEventListener('click', e => { if (e.target.id === 'reviewDialog') $('#reviewDialog').close(); });
+  $('#reviewName').addEventListener('input', refreshReviewOut);
+  $('#reviewCopy').onclick = async () => {
+    if (!$('#reviewName').value.trim()) { toast(T().reviewNeedName); $('#reviewName').focus(); return; }
+    refreshReviewOut();
+    try { await navigator.clipboard.writeText($('#reviewOut').value); toast(T().reviewCopied); }
+    catch { $('#reviewOut').select(); }
+  };
   $('#tourBtn').onclick = startTour;
   $('#tourSkip').onclick = endTour;
   $('#tourBack').onclick = () => moveTour(-1);
@@ -1387,6 +1531,7 @@ loadData().then(() => {
   let dockWanted = false;
   try { dockWanted = localStorage.getItem(NARR_KEY) === '1'; } catch { /* private mode */ }
   if (dockWanted) setNarrDock(true);
+  if (params.get('review') === '1') setTimeout(openReview, 400);
   const wants = params.get('tour');
   if (wants === '1' || (wants !== '0' && !tourSeen())) setTimeout(startTour, 700);
 }).catch(showLoadError);

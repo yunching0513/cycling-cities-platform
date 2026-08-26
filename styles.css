@@ -354,7 +354,7 @@ dialog::backdrop{background:rgba(31,29,25,.34)}
 .search-results b{font-family:var(--serif);font-size:13px;font-weight:500;letter-spacing:.03em}
 .search-results small{display:block;font-family:var(--sans);font-size:10.5px;color:var(--ash);margin-top:2px}
 
-.contribute-shell{position:relative;width:min(520px,92vw);background:var(--paper);
+.contribute-shell{position:relative;width:min(560px,92vw);background:var(--paper);
   border:1px solid var(--stone);box-shadow:var(--shadow);padding:30px 30px 24px}
 .dialog-close{position:absolute;top:14px;right:14px;border:0;background:none;cursor:pointer;padding:2px}
 .dialog-close svg{width:16px;height:16px;stroke:var(--ash);stroke-width:1.5;fill:none;stroke-linecap:round}
@@ -365,13 +365,8 @@ dialog::backdrop{background:rgba(31,29,25,.34)}
   letter-spacing:.05em;margin:8px 0 12px}
 html:not([data-lang="zh"]) .contribute-shell h2{font-family:var(--en-serif);font-weight:500;letter-spacing:0}
 .contribute-shell > p{font-family:var(--sans);font-size:13px;line-height:1.9;color:var(--graphite)}
-.contribute-options{display:grid;gap:6px;margin:18px 0 14px}
-.contribute-options button{display:flex;align-items:baseline;gap:12px;text-align:left;padding:12px 14px;
-  border:1px solid var(--mist);background:var(--paper-2);cursor:pointer;transition:all .18s}
-.contribute-options button:hover{border-color:var(--vermilion)}
-.contribute-options span{font-family:var(--mono);font-size:10px;color:var(--vermilion);flex:0 0 auto}
-.contribute-options b{font-family:var(--serif);font-size:13.5px;font-weight:500;letter-spacing:.04em}
-.contribute-options small{display:block;font-family:var(--sans);font-size:10.5px;color:var(--ash);margin-top:2px}
+/* the old fixed option buttons are gone; the guided flow owns this container now */
+.contribute-options{margin:14px 0 14px}
 .contribute-note{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--ash);line-height:1.8}
 
 /* ---------- toast ---------- */
@@ -604,7 +599,81 @@ html:not([data-lang="zh"]) .tour-tip h3{font-family:var(--en-serif);font-size:19
 body.narr-open .map-tools,body.narr-open .map-bottom-left{left:calc(var(--narr-off) + 16px)}
 body.narr-open .prototype-notice{left:calc(var(--narr-off) + 62px)}
 body.narr-open #divider,body.narr-open .split-labels{left:var(--narr-off)}
+/* ---------- record review queue ---------- */
+.review-dialog{border:0;padding:0;background:none;max-width:none;max-height:none}
+.review-dialog::backdrop{background:rgba(31,29,25,.42)}
+.review-shell{position:relative;width:min(720px,calc(100vw - 32px));max-height:calc(100vh - 48px);
+  overflow-y:auto;background:var(--paper);border:1px solid var(--ink);padding:26px 30px 24px;
+  box-shadow:var(--shadow)}
+.review-dialog .eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--vermilion)}
+.review-shell h2{font-family:var(--serif);font-size:23px;font-weight:600;margin:7px 0 9px;color:var(--ink)}
+html:not([data-lang="zh"]) .review-shell h2{font-family:var(--en-serif);font-size:26px;font-weight:500}
+.review-lead{font-family:var(--sans);font-size:12.5px;line-height:1.85;color:var(--graphite);
+  margin-bottom:16px;max-width:62ch}
+.review-count{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ash);padding:9px 0;border-top:1px solid var(--mist);border-bottom:1px solid var(--mist);
+  margin-bottom:4px}
+.review-queue{margin-bottom:18px}
+.review-city{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--vermilion);margin:18px 0 2px}
+.review-row{padding:13px 0 15px;border-bottom:1px solid var(--mist)}
+.review-row header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+.review-id,.review-step{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--ash)}
+.review-step{color:var(--ink)}
+.review-factor{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--fc);border:1px solid var(--fc);padding:2px 6px 1px}
+.review-row h4{font-family:var(--serif);font-size:15px;font-weight:600;line-height:1.4;color:var(--ink)}
+html:not([data-lang="zh"]) .review-row h4{font-family:var(--en-serif);font-size:17px;font-weight:500}
+.review-narr{font-family:var(--sans);font-size:12px;line-height:1.8;color:var(--graphite);margin:4px 0 6px}
+.review-cite{font-family:var(--mono);font-size:10px;color:var(--ash);margin-bottom:9px}
+.review-choices{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.review-choices button{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  padding:7px 11px;border:1px solid var(--stone);background:none;color:var(--graphite);cursor:pointer;
+  transition:background .15s,border-color .15s,color .15s}
+.review-choices button:hover{border-color:var(--ink);color:var(--ink)}
+.review-choices button.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.review-src,.review-note{width:100%;padding:7px 9px;margin-bottom:6px;background:var(--paper);
+  border:1px solid var(--mist);font-family:var(--sans);font-size:12px;color:var(--ink);border-radius:0}
+.review-src:focus,.review-note:focus{outline:none;border-color:var(--vermilion)}
+.review-src[hidden]{display:none}
+.review-empty{font-family:var(--sans);font-size:12.5px;color:var(--ash);padding:18px 0}
+/* ---------- guided contribution ---------- */
+.contrib-step{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--vermilion);margin:18px 0 4px}
+.contribute-shell h3{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--ink);
+  margin-bottom:8px}
+html:not([data-lang="zh"]) .contribute-shell h3{font-family:var(--en-serif);font-size:17px;font-weight:500}
+.contrib-tracks{display:flex;flex-direction:column;gap:7px}
+.contrib-track{display:block;width:100%;text-align:left;padding:12px 14px;cursor:pointer;
+  background:var(--paper);border:1px solid var(--stone);transition:border-color .15s,background .15s}
+.contrib-track:hover{border-color:var(--vermilion);background:var(--vermilion-l)}
+.contrib-track b{display:block;font-family:var(--serif);font-size:14px;font-weight:600;color:var(--ink)}
+html:not([data-lang="zh"]) .contrib-track b{font-family:var(--en-serif);font-size:16px;font-weight:500}
+.contrib-track span{display:block;font-family:var(--sans);font-size:11.5px;line-height:1.6;
+  color:var(--ash);margin-top:2px}
+.contribute-options .contrib-back{display:inline-block;font-family:var(--mono);font-size:9px;
+  letter-spacing:.13em;text-transform:uppercase;background:none;border:0;color:var(--ash);
+  cursor:pointer;padding:0;margin-bottom:2px;width:auto}
+.contribute-options .contrib-back::before{content:'\2190  '}
+.contribute-options .contrib-back:hover{color:var(--vermilion)}
+.contrib-sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ash);margin-bottom:6px}
+.contrib-needs{margin:0 0 12px 16px}
+.contrib-needs li{font-family:var(--sans);font-size:12.5px;line-height:1.85;color:var(--graphite)}
+.contrib-rule{padding:12px 14px;margin-bottom:14px;background:var(--paper-2);
+  border-left:3px solid var(--vermilion);font-family:var(--sans);font-size:12px;
+  line-height:1.8;color:var(--graphite)}
+.contrib-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.contribute-options a.contrib-dl{display:inline-block;text-decoration:none;text-align:center;width:auto}
+.contribute-options a.contrib-guide{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--vermilion);text-decoration:none;border-bottom:1px solid var(--mist)}
+.contribute-options a.contrib-guide:hover{border-bottom-color:var(--vermilion)}
+.contribute-shell .contrib-p{font-family:var(--sans);font-size:12.5px;line-height:1.85;
+  color:var(--graphite)}
 @media(max-width:760px){
+  .review-shell{width:calc(100vw - 20px);padding:20px 18px 18px;max-height:calc(100vh - 24px)}
+  .review-choices button{flex:1 1 auto}
   /* a phone has no room for a second column: the narrative stays an overlay */
   #narr{display:none!important}
   body.narr-open{--narr-off:0px}

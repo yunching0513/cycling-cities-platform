@@ -298,6 +298,24 @@
       </div>
     </div>
 
+    <dialog class="review-dialog" id="reviewDialog">
+      <div class="review-shell">
+        <button class="dialog-close" id="reviewClose" type="button" aria-label="Close">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <span class="eyebrow" id="reviewEyebrow"></span>
+        <h2 id="reviewTitle"></h2>
+        <p class="review-lead" id="reviewLead"></p>
+        <label class="pin-field"><span id="reviewNameLbl"></span>
+          <input type="text" id="reviewName" /></label>
+        <div class="review-count" id="reviewCount"></div>
+        <div class="review-queue" id="reviewQueue"></div>
+        <label class="pin-field pin-out"><span id="reviewOutLbl"></span>
+          <textarea id="reviewOut" rows="7" readonly></textarea></label>
+        <button class="btn" id="reviewCopy" type="button"><span class="t"></span></button>
+      </div>
+    </dialog>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
