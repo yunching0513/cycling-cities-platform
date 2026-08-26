@@ -533,25 +533,43 @@ function drawSites(list, layer) {
       .on('click', () => selectSite(s.id)).addTo(layer);
   });
 }
+/* Rights, not hosting location, decide whether an image is embedded. A scan from any
+   archive may be embedded once cleared; a file that is not cleared is never embedded,
+   wherever it sits. Plan §1.1: no image goes in before its rights are checked. */
+const imgCredit = img => img.credit || '[TO BE CONFIRMED]';
+
 function recordMedia(s) {
   const t = T(), img = s.image;
-  if (img && img.commons) {
-    const src = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(img.commons)}?width=900`;
+  if (!img) return `<div class="rec-plate"><span>${t.plate}</span></div>`;
+
+  const src = img.cleared === true
+    ? (img.commons
+        ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(img.commons)}?width=900`
+        : img.url || null)
+    : null;
+
+  if (src) {
+    const link = img.link
+      ? ` · <a href="${img.link}" target="_blank" rel="noopener">${t.viewSource}</a>` : '';
     return `<img class="rec-img" src="${src}" alt="${tr(s.title)}" loading="lazy">`
-      + `<div class="rec-cap">${img.credit} · <a href="${img.link}" target="_blank" rel="noopener">${t.viewSource}</a></div>`;
+      + `<div class="rec-cap">${imgCredit(img)}${link}</div>`;
   }
-  if (img && img.link) {
+  if (img.link) {
     return `<div class="rec-slot"><span>${t.offsite}</span>`
       + `<a href="${img.link}" target="_blank" rel="noopener">${t.viewSource}</a></div>`
-      + `<div class="rec-cap">${img.credit}</div>`;
+      + `<div class="rec-cap">${imgCredit(img)}</div>`;
   }
   return `<div class="rec-plate"><span>${t.plate}</span></div>`;
 }
+
 function rightsBadge(s) {
   const t = T(), img = s.image;
   if (!img) return `<div class="rights-badge pending"><i></i>${t.noImage}</div>`;
-  return `<div class="rights-badge ${img.cleared ? 'ok' : 'pending'}"><i></i>`
-    + `<a href="${img.rightsURI}" target="_blank" rel="noopener">${img.rights}</a></div>`;
+  const label = img.rights || t.rightsUnknown;
+  const body = img.rightsURI
+    ? `<a href="${img.rightsURI}" target="_blank" rel="noopener">${label}</a>`
+    : label;
+  return `<div class="rights-badge ${img.cleared === true ? 'ok' : 'pending'}"><i></i>${body}</div>`;
 }
 function renderRecord() {
   const r = $('#record'), t = T();
@@ -724,7 +742,10 @@ function selectCity(id, { fly = true } = {}) {
   updateSplit();
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === 'map'));
   if (fly) goTo(map, CITIES[id].center, CITIES[id].zoom, { duration: 1.1 });
-  if (state.histOn) { addHist(); setSwipe(state.swipeOn); }
+  /* re-evaluate the overlay against the new city: it rewrites the status line, which
+     otherwise keeps describing whichever city was selected before */
+  setHist(state.histOn);
+  if (state.histOn) setSwipe(state.swipeOn);
   render();
 }
 function setCompare(on) {
