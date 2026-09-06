@@ -57,6 +57,18 @@ useful record in itself: it tells the next person where the difficulty is.
 In the data file, next to the row, and therefore in the version history. Every change
 carries its date and its author, and nothing is overwritten silently.
 
+When a row arrived through the inbox, the maintainer signs it there first:
+
+    node scripts/inbox.mjs verify <id> --by "Your Name"
+
+The database refuses the signature if the row names no source, which is the same rule
+as above written where habit cannot bend it. The export then carries the signature into
+the data file, and git carries it from there.
+
+Decisions made in the tool's review queue can be sent to the inbox too. They arrive as
+a proposal in `docs/inbox/`, and the maintainer applies them by hand. Reviewing produces
+a proposal, not a change.
+
 
 ## Who may sign
 

@@ -180,6 +180,7 @@
         <span class="val" id="histOpaVal">85%</span>
       </div>
       <div class="hist-status" id="histStatus"></div>
+      <div class="hist-need" id="histNeed"></div>
 
       <div class="section-label" id="sl4"><span class="num">04</span><span class="txt"></span><span class="en"></span><button class="act" id="allFactors" type="button"></button></div>
       <div id="factors"></div>
@@ -274,8 +275,13 @@
         <label class="pin-field"><span id="pinNameLbl"></span><input type="text" id="pinName" /></label>
         <label class="pin-field"><span id="pinDecadeLbl"></span><select id="pinDecade"></select></label>
         <label class="pin-field"><span id="pinNoteLbl"></span><textarea id="pinNote" rows="3"></textarea></label>
+        <div class="pin-two">
+          <label class="pin-field"><span id="pinYouLbl"></span><input type="text" id="pinYou" autocomplete="name" /></label>
+          <label class="pin-field"><span id="pinEmailLbl"></span><input type="email" id="pinEmail" autocomplete="email" /></label>
+        </div>
         <label class="pin-field pin-out"><span id="pinOutLbl"></span>
           <textarea id="pinOut" rows="7" readonly></textarea></label>
+        <button class="btn" id="pinSend" type="button" hidden><span class="dot"></span><span class="t"></span></button>
         <button class="btn" id="pinCopy" type="button"><span class="t"></span></button>
         <p class="contribute-note" id="pinStore"></p>
       </div>
@@ -312,6 +318,7 @@
         <div class="review-queue" id="reviewQueue"></div>
         <label class="pin-field pin-out"><span id="reviewOutLbl"></span>
           <textarea id="reviewOut" rows="7" readonly></textarea></label>
+        <button class="btn" id="reviewSend" type="button" hidden><span class="dot"></span><span class="t"></span></button>
         <button class="btn" id="reviewCopy" type="button"><span class="t"></span></button>
       </div>
     </dialog>
@@ -320,6 +327,9 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script src="https://yunching0513.github.io/Netherlands-historical-map/vendor/pmtiles.js"></script>
+    <!-- proj4 reprojects the Dutch RD grid (EPSG:28992) for the Topotijdreis maps -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.22.0/proj4.js"></script>
+    <script src="./config.js"></script>
     <script src="./i18n.js"></script>
     <script src="./app.js"></script>
   </body>

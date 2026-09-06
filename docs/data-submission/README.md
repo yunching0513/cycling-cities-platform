@@ -6,19 +6,21 @@ minutes to read. You do not need any software beyond a spreadsheet program and e
 
 ## Before anything else
 
-There is no upload button on the website, and that is on purpose.
+Nothing you send goes straight onto the website, and that is on purpose.
 
 The rule this project works to is that nothing appears in the tool unless the file says
 where it came from and a named person has checked it. A form that wrote straight into
-the live site would remove the person, so instead you send us a file and we load it.
+the live site would remove the person. So what you send goes to a person first: either
+by email, or through the drop box on the site, which delivers to a private inbox that
+only the maintainer can read.
 
-The practical effect for you is good: you are never blocked waiting for a login, and
-nothing you send can be quietly altered without it showing up in the record.
+The practical effect for you is good: there is no login, and nothing you send can be
+quietly altered without it showing up in the record.
 
 
 ## Step 1. Work out which kind of contribution you have
 
-There are three, and they are separate. Most people have one; some have all three.
+There are four, and they are separate. Most people have one; some have several.
 
 Counts of how people travelled, at a place, in a year. Use
 `modal-split-template.csv`, and read `MODAL-SPLIT.md`.
@@ -28,6 +30,9 @@ Historic photographs, prints or scans. Use `image-template.csv`, and read
 
 Written narrative about a period in your city. Use `story-template.csv`, and read
 `STORIES.md`.
+
+A historical map of your city, with its year and where it is held. Use
+`map-template.csv`, and read `MAPS.md`. You do not need to know how to georeference it.
 
 If you have two kinds, send two files. Do not try to combine them.
 
@@ -61,9 +66,17 @@ know there rather than forcing it into a column where it does not belong.
 
 ## Step 4. Send it back
 
-Email the file to the maintainer, with any image files attached or linked.
+Two ways, and both end in the same place.
 
-If your files are large, a link to a shared folder is easier than an attachment.
+On the site, open Contribute, choose your kind of data, and drop the filled file into
+the box at step 3. The page checks that the columns match the template, tells you about
+any row it cannot read, and sends the rows to a private inbox. It asks for your name and
+email so that we can ask you a question about the batch. If the box is not there, the
+inbox has not been switched on yet: use email.
+
+Or email the file to the maintainer, with any image files attached or linked. If your
+files are large, a link to a shared folder is easier than an attachment. Image files and
+scans always travel this way; the drop box takes the spreadsheet only.
 
 Tell us in the email if anything in the batch is provisional, or if you are still
 waiting on an archive to answer you. That saves a round of questions.
@@ -146,8 +159,15 @@ Tell us. It is corrected in the file, the correction is recorded, and the site u
 Nothing is hidden.
 
 
+*Why does the site keep telling me what is missing?*
+
+Because that is how it asks. Wherever a city has no figures, no map, no image or no
+paragraph, the interface shows what would fill the gap, which template it comes from,
+and a button that opens the right track. The empty state is the specification.
+
 ## The templates
 
     modal-split-template.csv    counts        see MODAL-SPLIT.md
     image-template.csv          photographs   see IMAGES.md
     story-template.csv          narrative     see STORIES.md
+    map-template.csv            dated maps    see MAPS.md

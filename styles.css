@@ -671,6 +671,95 @@ html:not([data-lang="zh"]) .contrib-track b{font-family:var(--en-serif);font-siz
 .contribute-options a.contrib-guide:hover{border-bottom-color:var(--vermilion)}
 .contribute-shell .contrib-p{font-family:var(--sans);font-size:12.5px;line-height:1.85;
   color:var(--graphite)}
+/* ---------- empty states as specifications ---------- */
+.need{margin-top:8px;padding:10px 12px;background:var(--paper);border:1px dashed var(--stone);border-left:3px solid var(--vermilion)}
+.need-what{font-family:var(--sans);font-size:11.5px;line-height:1.7;color:var(--graphite);margin-bottom:6px}
+.need-h{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--vermilion);margin-bottom:3px}
+.need ul{margin:0 0 8px 14px}
+.need li{font-family:var(--sans);font-size:11px;line-height:1.7;color:var(--graphite)}
+.need-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.need-cta{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;
+  border:1px solid var(--ink);background:none;color:var(--ink);cursor:pointer;transition:background .15s,color .15s}
+.need-cta:hover{background:var(--ink);color:var(--paper)}
+.need-actions a{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ash);
+  text-decoration:none;border-bottom:1px solid var(--mist)}
+.need-actions a:hover{color:var(--vermilion);border-bottom-color:var(--vermilion)}
+.drawer-body .need-what,.drawer-body .need li{font-size:12px}
+.drawer-body .need ul{margin-bottom:8px}
+/* ---------- dated maps ---------- */
+.hist-status .hs-city{display:block;color:var(--ink);letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px}
+.hist-status .hs-sep{border:0;border-top:1px solid var(--mist);margin:7px 0}
+.hist-status .hs-ov{display:block;margin-top:6px;padding:5px 8px;border:1px solid var(--stone);background:none;
+  color:var(--graphite);font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.hist-status .hs-ov:hover{border-color:var(--vermilion);color:var(--vermilion)}
+.hist-status .hs-note{margin-top:6px;font-family:var(--sans);font-size:10.5px;line-height:1.6;color:var(--ash);text-transform:none;letter-spacing:0}
+.hist-status a{color:var(--graphite)}
+.hist-need:empty{display:none}
+.year-ticks span{position:relative;padding-bottom:6px}
+.year-ticks span.has-map::after{content:'';position:absolute;left:50%;bottom:0;width:4px;height:4px;margin-left:-2px;background:var(--graphite)}
+.source-table td.wrap{white-space:normal}
+/* ---------- narrative chapters ---------- */
+.narr-switch{display:inline-block;margin:0 0 14px;padding:0 0 1px;border:0;border-bottom:1px solid var(--stone);background:none;
+  cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--graphite)}
+.narr-switch:hover{color:var(--vermilion);border-bottom-color:var(--vermilion)}
+.chap{padding:16px 0 6px;border-top:1px solid var(--mist)}
+.chap header{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:8px}
+.chap-n{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--fc)}
+.drawer-body .chap header h3{margin:0;font-family:var(--serif);font-size:14px;font-weight:600;letter-spacing:.08em;color:var(--ink)}
+html:not([data-lang="zh"]) .drawer-body .chap header h3{font-family:var(--en-serif);font-size:16px;font-weight:500;letter-spacing:.02em}
+.chap-sub{font-family:var(--sans);font-size:10.5px;color:var(--ash);margin-left:auto}
+.chap-city{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ash);margin:10px 0 4px}
+.chap .phase{border-bottom:0;padding:10px 0 14px 12px;border-left:2px solid var(--fc);margin-bottom:6px}
+.chap .phase::before{display:none}
+.chap .phase.active{background:var(--vermilion-l)}
+.para-by{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ash);margin-left:auto}
+.drawer-body .phase h5{font-family:var(--serif);font-size:15px;font-weight:600;line-height:1.4;color:var(--ink);margin-bottom:6px}
+html:not([data-lang="zh"]) .drawer-body .phase h5{font-family:var(--en-serif);font-size:17px;font-weight:500}
+.drawer-body .draft .lorem-t{font-family:var(--en-serif);font-style:italic;font-size:15px;font-weight:500;color:var(--silver);margin-bottom:4px}
+.chap .need{margin:4px 0 10px}
+.para .ph-flag{margin-bottom:8px}
+/* ---------- image records ---------- */
+.img-strip{margin-top:14px;padding-top:12px;border-top:1px solid var(--mist)}
+.img-strip h4{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--vermilion);margin-bottom:5px}
+.img-intro{font-family:var(--sans);font-size:11px;line-height:1.7;color:var(--ash);margin-bottom:8px}
+.img-card{padding:10px;margin-bottom:8px;background:var(--paper);border:1px solid var(--stone)}
+.img-card.is-placeholder{border-style:dashed}
+.img-card img{width:100%;display:block;border:1px solid var(--mist);margin-bottom:8px;background:var(--paper-2)}
+.img-card .rec-slot{margin-bottom:8px}
+.img-cap{font-family:var(--sans);font-size:12.5px;line-height:1.7;color:var(--ink);margin-bottom:8px}
+.img-card dl,.img-dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-bottom:8px}
+.img-card dt,.img-dl dt{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--silver);padding-top:2px}
+.img-card dd,.img-dl dd{font-family:var(--sans);font-size:11px;line-height:1.6;color:var(--graphite)}
+.img-card dd a,.img-dl dd a{color:var(--graphite)}
+.img-card .rec-cap{margin-bottom:0}
+.img-card .mono{font-family:var(--mono)}
+.img-marker span{display:block;width:10px;height:10px;margin:2px;background:var(--paper-2);border:1px solid var(--graphite)}
+.img-marker:hover span{border-color:var(--vermilion)}
+.map-legend i.dot-img{border-radius:0;background:var(--paper-2);border:1px solid var(--graphite)}
+/* ---------- contribution inbox ---------- */
+.contrib-form{display:grid;gap:8px;margin:10px 0 8px}
+.contrib-form .pin-field{margin-bottom:0}
+.contrib-file{display:block;padding:12px 14px;border:1px dashed var(--stone);background:var(--paper-2);cursor:pointer}
+.contrib-file span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ash);margin-bottom:6px}
+.contrib-file input{font-family:var(--sans);font-size:12px;color:var(--graphite);width:100%}
+.contrib-check:empty{display:none}
+.contrib-check .ok{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--graphite);padding:8px 10px;
+  border:1px solid var(--mist);background:var(--paper);margin:0}
+.contrib-check .bad{margin:0;padding:8px 10px 8px 24px;border:1px dashed var(--vermilion);background:var(--vermilion-l)}
+.contrib-check .bad li{font-family:var(--mono);font-size:10px;line-height:1.7;color:var(--vermilion-d)}
+.contrib-send{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 14px;
+  border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;justify-self:start;transition:background .15s,border-color .15s}
+.contrib-send:hover:not(:disabled){background:var(--vermilion);border-color:var(--vermilion)}
+.contrib-send:disabled{opacity:.4;cursor:default}
+.contribute-shell .contrib-or{color:var(--ash);font-size:11.5px}
+.pin-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#pinSend[hidden],#reviewSend[hidden]{display:none}
+/* ---------- dissolves ---------- */
+/* a sheet's container opacity is what Leaflet's setOpacity changes, so the swap becomes a crossfade */
+.leaflet-hist-pane .leaflet-layer{transition:opacity .7s ease}
+@keyframes ccFade{from{opacity:0}}
+.site-new{animation:ccFade .6s ease}
+.year-display.tick{animation:ccFade .5s ease}
 @media(max-width:760px){
   .review-shell{width:calc(100vw - 20px);padding:20px 18px 18px;max-height:calc(100vh - 24px)}
   .review-choices button{flex:1 1 auto}

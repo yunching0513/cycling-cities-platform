@@ -73,11 +73,23 @@ Write your paragraph in English. Traditional Chinese and Dutch are added afterwa
 the team. Do not machine-translate your own text into the other two: a rough translation
 is harder to correct than an empty field.
 
-## What is not built yet
+## How your paragraph appears
 
-The tool currently holds **one shared narrative**, not one per city. The per-city layer
-this template describes has been designed but not implemented, because it needs a
-decision first: when a reader has Riga selected, should they see Riga's paragraph only,
-or Riga's paragraph followed by the shared one?
+The narrative column has two views. The **shared frame** is the project's common
+argument, read as the nine periods above. A **city chapter** is your city's paragraphs
+arranged under the five factors, in the same order for every city, so that two chapters
+can be read side by side factor for factor. A reader switches between the two with one
+link at the top of the column; with a city selected they see that city's chapter, and in
+the comparison view they see both cities' chapters, factor by factor.
 
-Send your text anyway. It is the text that takes time, not the code that shows it.
+Your row's `period_start` decides which period the paragraph belongs to and where the
+map goes when a reader selects it. Your row's `factor` decides which section of the
+chapter it sits in; leave it empty and the shared period's factor is used.
+
+Where a city has no paragraph for a factor, the column says so and shows what a
+paragraph needs, rather than filling the gap. The Rotterdam chapter currently holds
+three Lorem Ipsum paragraphs, at the team's request, to show the shape.
+
+Until a reviewer has checked a paragraph against the sources it lists, it is shown with
+an "unconfirmed" flag. That is not a judgement on the text; it means nobody has yet sat
+with it and the sources side by side.

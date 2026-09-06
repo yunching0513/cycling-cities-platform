@@ -1,0 +1,10 @@
+{
+  "meta": {
+    "updated": "2026-09-05",
+    "schema": "docs/data-submission/IMAGES.md",
+    "total": 0,
+    "cleared": 0,
+    "note": "Standalone image records, one per image, mapped from image-template.csv. A record is complete without its picture: caption, place, year, creator, holding archive, reference and rights status are shown as a card, and the picture itself is embedded only when cleared is true. No record has been supplied yet. Images attached to a site record stay on that record in sites.json."
+  },
+  "images": []
+}

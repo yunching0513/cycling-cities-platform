@@ -130,13 +130,16 @@ Riga, Budapest and Lisbon are selectable now, with no records of their own. Open
 tool, pick your city, and section 05 will say that no modal split figures have been
 supplied yet. That empty state is what your rows fill.
 
-The historical overlay is switched off for the three new cities: no dated, rights-cleared
-map has been found for them yet. If you have one, say so.
+The historical overlay is switched off for the new cities: no dated, rights-cleared map
+has been found for them yet. Section 03 says what one needs. If you have one, use
+`map-template.csv` and read `MAPS.md`; you do not need to georeference it yourself.
 
 ## What happens to a submitted row
 
 1. It is loaded into `data/modalsplit.json` or `data/intersections.json` with
-   `placeholder: true`.
+   `placeholder: true`. A row with a `point_id` becomes a junction: its counts are listed
+   year by year in the junction's panel, each with its method and source. A row without
+   one is a city-level figure and joins the curve in section 05.
 2. It appears on the map as a hollow, dashed marker and cannot be cited.
 3. When `verified_by` and `verified_on` are filled and a second reader confirms them,
    the flag flips and the marker becomes solid.
@@ -146,6 +149,7 @@ map has been found for them yet. If you have one, say so.
 - If your source counts a mode the four buckets cannot hold, say so in `notes`
   rather than forcing it. Several such notes will be a good argument for adding a
   fifth mode to the interface.
-- If you have a georeferenced historical map of the city for the same period, say so.
-  The tool can carry a dated map layer per decade, and currently has one, for
-  Rotterdam in 1900.
+- If you know of a historical map of the city for the same period, georeferenced or
+  not, record it in `map-template.csv`. The tool carries a dated map per step and shows
+  the nearest one; Rotterdam has one for every step because the Dutch cadastre
+  publishes its series year by year.

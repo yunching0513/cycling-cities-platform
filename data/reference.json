@@ -1,7 +1,7 @@
 {
   "meta": {
-    "updated": "2026-08-25",
-    "note": "riga, buda, lisb and tehr carry no site records, no modal split rows and no dated map. Their centre coordinates are approximate city centres and should be confirmed by the contributing researcher."
+    "updated": "2026-09-05",
+    "note": "riga, buda, lisb and tehr carry no site records and no modal split rows. Their centre coordinates are approximate city centres and should be confirmed by the contributing researcher. Dated maps moved to data/maps.json; per-city narrative lives in data/narrative.json; standalone image records in data/images.json."
   },
   "decades": [
     1890,
@@ -191,19 +191,7 @@
         44.96,
         -93.272
       ],
-      "zoom": 13,
-      "hist": {
-        "kind": "xyz",
-        "url": "https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer/tile/{z}/{y}/{x}",
-        "label": {
-          "en": "USGS Topo (Esri) · scanned quadrangles",
-          "zh": "USGS Topo (Esri) · 掃描版地形圖",
-          "nl": "USGS Topo (Esri) · gescande kaartbladen"
-        },
-        "attr": "USGS / Esri, USA Topo Maps",
-        "minZoom": 8,
-        "maxZoom": 15
-      }
+      "zoom": 13
     },
     "rdam": {
       "name": {
@@ -215,29 +203,7 @@
         51.9225,
         4.479
       ],
-      "zoom": 14,
-      "hist": {
-        "kind": "pmtiles",
-        "url": "https://yunching0513.github.io/Netherlands-historical-map/pmtiles/rotterdam-1900.pmtiles",
-        "label": {
-          "en": "Bonneblad 1900 · Kadaster / Topotijdreis",
-          "zh": "Bonneblad 1900 · Kadaster / Topotijdreis",
-          "nl": "Bonneblad 1900 · Kadaster / Topotijdreis"
-        },
-        "attr": "&copy; Kadaster, CC BY 4.0",
-        "minZoom": 12,
-        "maxZoom": 17,
-        "bounds": [
-          [
-            51.9045,
-            4.4512
-          ],
-          [
-            51.9405,
-            4.5072
-          ]
-        ]
-      }
+      "zoom": 14
     },
     "riga": {
       "name": {
@@ -249,8 +215,7 @@
         56.9496,
         24.1052
       ],
-      "zoom": 13,
-      "hist": null
+      "zoom": 13
     },
     "buda": {
       "name": {
@@ -262,8 +227,7 @@
         47.4979,
         19.0402
       ],
-      "zoom": 12,
-      "hist": null
+      "zoom": 12
     },
     "lisb": {
       "name": {
@@ -275,8 +239,7 @@
         38.7223,
         -9.1393
       ],
-      "zoom": 13,
-      "hist": null
+      "zoom": 13
     },
     "tehr": {
       "name": {
@@ -288,8 +251,7 @@
         35.6892,
         51.389
       ],
-      "zoom": 12,
-      "hist": null
+      "zoom": 12
     }
   },
   "networkCities": [

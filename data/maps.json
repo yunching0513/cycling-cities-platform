@@ -1,0 +1,519 @@
+{
+  "meta": {
+    "updated": "2026-09-06",
+    "schema": "docs/data-submission/MAPS.md",
+    "note": "One row per dated map, or one row per series with a years list and a {year} placeholder in the tile URL. year is the year the publisher gives the map, and yearBasis says what that year means. The interface shows the map nearest to the selected step and states the distance in years; beyond maxGap it offers the map on request instead of showing it by default. A city with no drawable row shows what is needed. A row with placeholder true is a lead that has been recorded but has no georeferenced file yet and is never drawn. kind arcgis-image draws named rasters of an Esri image service, one exportImage call per tile.",
+    "maxGap": 25
+  },
+  "maps": [
+    {
+      "id": "RDAM-MAP-TOPOTIJDREIS",
+      "city": "rdam",
+      "kind": "topotijdreis",
+      "years": [
+        1890,
+        1900,
+        1910,
+        1920,
+        1930,
+        1940,
+        1950,
+        1960,
+        1970,
+        1980,
+        1990,
+        2000,
+        2010,
+        2020,
+        2023
+      ],
+      "service": "https://tiles.arcgis.com/tiles/nSZVuSZjHpEZZbRo/arcgis/rest/services/Historische_tijdreis_{year}/MapServer/tile",
+      "title": {
+        "en": "Topographic map, Topotijdreis {year}",
+        "zh": "地形圖，Topotijdreis {year}年",
+        "nl": "Topografische kaart, Topotijdreis {year}"
+      },
+      "yearBasis": "Topotijdreis timeline year: the national map as it stood in that year. Individual sheets may have been surveyed earlier.",
+      "publisher": "Kadaster",
+      "source": {
+        "citation": "Kadaster, Topotijdreis: two centuries of Dutch topographic maps, {year} layer, tile service hosted by Esri Nederland.",
+        "archive": "Kadaster",
+        "reference": null,
+        "url": "https://www.topotijdreis.nl"
+      },
+      "licence": {
+        "statement": "CC BY 4.0",
+        "uri": "https://creativecommons.org/licenses/by/4.0/",
+        "basis": "licence stated by the publisher"
+      },
+      "attr": "&copy; Kadaster / Topotijdreis, CC BY 4.0",
+      "projection": "EPSG:28992, reprojected to EPSG:3857 tile by tile in the browser",
+      "minZoom": 10,
+      "maxZoom": 17,
+      "checked": "2026-09-05",
+      "placeholder": false,
+      "checkedNote": "Service metadata answered for every listed year on 2026-09-05; the 1930 and 1960 layers were seen rendering in the browser the same day. Other years share the service and were not each viewed."
+    },
+    {
+      "id": "RDAM-MAP-1900-PMTILES",
+      "city": "rdam",
+      "kind": "pmtiles",
+      "year": 1900,
+      "url": "https://yunching0513.github.io/Netherlands-historical-map/pmtiles/rotterdam-1900.pmtiles",
+      "title": {
+        "en": "Bonneblad 1900, baked archive",
+        "zh": "Bonneblad 1900，預先烘製的檔案",
+        "nl": "Bonneblad 1900, gebakken archief"
+      },
+      "yearBasis": "Topotijdreis 1900 layer, reprojected ahead of time and packed as PMTiles so it works without the live service",
+      "publisher": "Kadaster",
+      "source": {
+        "citation": "Kadaster, Topotijdreis 1900 layer (Bonnebladen), baked to PMTiles by the Netherlands-historical-map project.",
+        "archive": "Kadaster",
+        "reference": null,
+        "url": "https://www.topotijdreis.nl"
+      },
+      "licence": {
+        "statement": "CC BY 4.0",
+        "uri": "https://creativecommons.org/licenses/by/4.0/",
+        "basis": "licence stated by the publisher"
+      },
+      "attr": "&copy; Kadaster, CC BY 4.0",
+      "projection": "EPSG:3857",
+      "minZoom": 12,
+      "maxZoom": 17,
+      "bounds": [
+        [
+          51.9045,
+          4.4512
+        ],
+        [
+          51.9405,
+          4.5072
+        ]
+      ],
+      "checked": "2026-08-19",
+      "placeholder": false
+    },
+    {
+      "id": "MPLS-MAP-USGS-COMPOSITE",
+      "city": "mpls",
+      "kind": "xyz",
+      "year": null,
+      "undated": true,
+      "url": "https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer/tile/{z}/{y}/{x}",
+      "title": {
+        "en": "USGS topographic quadrangles, undated composite",
+        "zh": "USGS地形圖幅，未定年的拼接圖",
+        "nl": "USGS-kaartbladen, ongedateerde compilatie"
+      },
+      "yearBasis": "Undated: the service stitches scanned quadrangles of different survey years and does not say which. Dated sheets from USGS topoView are needed before this city can be read decade for decade.",
+      "publisher": "USGS / Esri",
+      "source": {
+        "citation": "USGS topographic quadrangles, served as USA Topo Maps by Esri.",
+        "archive": "USGS",
+        "reference": null,
+        "url": null
+      },
+      "licence": {
+        "statement": "USGS maps are public domain; the Esri tile service has its own terms of use",
+        "uri": null,
+        "basis": "publisher statement"
+      },
+      "attr": "USGS / Esri, USA Topo Maps",
+      "projection": "EPSG:3857",
+      "minZoom": 8,
+      "maxZoom": 15,
+      "checked": "2026-08-19",
+      "placeholder": false
+    },
+    {
+      "id": "MPLS-MAP-1896",
+      "city": "mpls",
+      "kind": "arcgis-image",
+      "year": 1896,
+      "service": "https://historical1.arcgis.com/arcgis/rest/services/USA_Historical_Topo_Maps/ImageServer",
+      "rasterIds": [
+        85338,
+        85140
+      ],
+      "title": {
+        "en": "USGS 1:62,500 Minneapolis and Anoka quadrangles, 1896",
+        "zh": "USGS 1:62,500 Minneapolis and Anoka quadrangles，1896年",
+        "nl": "USGS 1:62,500 Minneapolis and Anoka quadrangles, 1896"
+      },
+      "yearBasis": "USGS 'date current' of the Minneapolis sheet (surveyed 1894, printed 1896); the Anoka sheet covering the northern edge of the city is the 1902 edition, surveyed 1899",
+      "publisher": "U.S. Geological Survey",
+      "source": {
+        "citation": "U.S. Geological Survey, 1:62,500 Minneapolis and Anoka quadrangles, 1896 edition (surveyed 1894); Anoka quadrangle, 1902 edition. Historical Topographic Map Collection, image service hosted by Esri (raster ids 85338, 85140).",
+        "archive": "USGS",
+        "reference": "Esri raster ids 85338, 85140",
+        "url": "https://historicalmaps.arcgis.com/usgs/"
+      },
+      "licence": {
+        "statement": "Public domain (U.S. Geological Survey); service courtesy of USGS and Esri",
+        "uri": "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+        "basis": "publisher statement: the service's copyright text and USGS copyright policy"
+      },
+      "attr": "Historical Topographic Map Collection courtesy of the <a href=\"https://www.usgs.gov/\">U.S. Geological Survey</a>, Esri",
+      "projection": "EPSG:3857, rendered per tile by the image service",
+      "minZoom": 9,
+      "maxZoom": 17,
+      "maxNativeZoom": 16,
+      "checked": "2026-09-06",
+      "placeholder": false,
+      "checkedNote": "Catalogue records read and a tile of each sheet pair requested on 2026-09-06; the 1896 and 1901 pairs were seen rendering in the browser the same day."
+    },
+    {
+      "id": "MPLS-MAP-1901",
+      "city": "mpls",
+      "kind": "arcgis-image",
+      "year": 1901,
+      "service": "https://historical1.arcgis.com/arcgis/rest/services/USA_Historical_Topo_Maps/ImageServer",
+      "rasterIds": [
+        85337,
+        85140
+      ],
+      "title": {
+        "en": "USGS 1:62,500 Minneapolis and Anoka quadrangles, 1901",
+        "zh": "USGS 1:62,500 Minneapolis and Anoka quadrangles，1901年",
+        "nl": "USGS 1:62,500 Minneapolis and Anoka quadrangles, 1901"
+      },
+      "yearBasis": "USGS 'date current' of the Minneapolis sheet (1901 edition, printed 1901, surveyed 1894); later imprints of this edition run to 1949 with the same content; the Anoka sheet is the 1902 edition",
+      "publisher": "U.S. Geological Survey",
+      "source": {
+        "citation": "U.S. Geological Survey, 1:62,500 Minneapolis and Anoka quadrangles, 1901 edition (surveyed 1894); Anoka quadrangle, 1902 edition. Historical Topographic Map Collection, image service hosted by Esri (raster ids 85337, 85140).",
+        "archive": "USGS",
+        "reference": "Esri raster ids 85337, 85140",
+        "url": "https://historicalmaps.arcgis.com/usgs/"
+      },
+      "licence": {
+        "statement": "Public domain (U.S. Geological Survey); service courtesy of USGS and Esri",
+        "uri": "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+        "basis": "publisher statement: the service's copyright text and USGS copyright policy"
+      },
+      "attr": "Historical Topographic Map Collection courtesy of the <a href=\"https://www.usgs.gov/\">U.S. Geological Survey</a>, Esri",
+      "projection": "EPSG:3857, rendered per tile by the image service",
+      "minZoom": 9,
+      "maxZoom": 17,
+      "maxNativeZoom": 16,
+      "checked": "2026-09-06",
+      "placeholder": false,
+      "checkedNote": "Catalogue records read and a tile of each sheet pair requested on 2026-09-06; the 1896 and 1901 pairs were seen rendering in the browser the same day."
+    },
+    {
+      "id": "MPLS-MAP-1952",
+      "city": "mpls",
+      "kind": "arcgis-image",
+      "year": 1952,
+      "service": "https://historical1.arcgis.com/arcgis/rest/services/USA_Historical_Topo_Maps/ImageServer",
+      "rasterIds": [
+        83988,
+        83981
+      ],
+      "title": {
+        "en": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1952",
+        "zh": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles，1952年",
+        "nl": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1952"
+      },
+      "yearBasis": "USGS 'date current' of both sheets (printed 1954)",
+      "publisher": "U.S. Geological Survey",
+      "source": {
+        "citation": "U.S. Geological Survey, 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1952 edition. Historical Topographic Map Collection, image service hosted by Esri (raster ids 83988, 83981).",
+        "archive": "USGS",
+        "reference": "Esri raster ids 83988, 83981",
+        "url": "https://historicalmaps.arcgis.com/usgs/"
+      },
+      "licence": {
+        "statement": "Public domain (U.S. Geological Survey); service courtesy of USGS and Esri",
+        "uri": "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+        "basis": "publisher statement: the service's copyright text and USGS copyright policy"
+      },
+      "attr": "Historical Topographic Map Collection courtesy of the <a href=\"https://www.usgs.gov/\">U.S. Geological Survey</a>, Esri",
+      "projection": "EPSG:3857, rendered per tile by the image service",
+      "minZoom": 9,
+      "maxZoom": 17,
+      "maxNativeZoom": 16,
+      "checked": "2026-09-06",
+      "placeholder": false,
+      "checkedNote": "Catalogue records read and a tile of each sheet pair requested on 2026-09-06; the 1896 and 1901 pairs were seen rendering in the browser the same day."
+    },
+    {
+      "id": "MPLS-MAP-1967",
+      "city": "mpls",
+      "kind": "arcgis-image",
+      "year": 1967,
+      "service": "https://historical1.arcgis.com/arcgis/rest/services/USA_Historical_Topo_Maps/ImageServer",
+      "rasterIds": [
+        83987,
+        83980
+      ],
+      "title": {
+        "en": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1967",
+        "zh": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles，1967年",
+        "nl": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1967"
+      },
+      "yearBasis": "USGS 'date current' of both sheets (revised 1967, printed 1969)",
+      "publisher": "U.S. Geological Survey",
+      "source": {
+        "citation": "U.S. Geological Survey, 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1967 edition. Historical Topographic Map Collection, image service hosted by Esri (raster ids 83987, 83980).",
+        "archive": "USGS",
+        "reference": "Esri raster ids 83987, 83980",
+        "url": "https://historicalmaps.arcgis.com/usgs/"
+      },
+      "licence": {
+        "statement": "Public domain (U.S. Geological Survey); service courtesy of USGS and Esri",
+        "uri": "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+        "basis": "publisher statement: the service's copyright text and USGS copyright policy"
+      },
+      "attr": "Historical Topographic Map Collection courtesy of the <a href=\"https://www.usgs.gov/\">U.S. Geological Survey</a>, Esri",
+      "projection": "EPSG:3857, rendered per tile by the image service",
+      "minZoom": 9,
+      "maxZoom": 17,
+      "maxNativeZoom": 16,
+      "checked": "2026-09-06",
+      "placeholder": false,
+      "checkedNote": "Catalogue records read and a tile of each sheet pair requested on 2026-09-06; the 1896 and 1901 pairs were seen rendering in the browser the same day."
+    },
+    {
+      "id": "MPLS-MAP-1972",
+      "city": "mpls",
+      "kind": "arcgis-image",
+      "year": 1972,
+      "service": "https://historical1.arcgis.com/arcgis/rest/services/USA_Historical_Topo_Maps/ImageServer",
+      "rasterIds": [
+        83986,
+        83979
+      ],
+      "title": {
+        "en": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1972",
+        "zh": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles，1972年",
+        "nl": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1972"
+      },
+      "yearBasis": "USGS 'date current' of both sheets (printed 1973)",
+      "publisher": "U.S. Geological Survey",
+      "source": {
+        "citation": "U.S. Geological Survey, 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1972 edition. Historical Topographic Map Collection, image service hosted by Esri (raster ids 83986, 83979).",
+        "archive": "USGS",
+        "reference": "Esri raster ids 83986, 83979",
+        "url": "https://historicalmaps.arcgis.com/usgs/"
+      },
+      "licence": {
+        "statement": "Public domain (U.S. Geological Survey); service courtesy of USGS and Esri",
+        "uri": "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+        "basis": "publisher statement: the service's copyright text and USGS copyright policy"
+      },
+      "attr": "Historical Topographic Map Collection courtesy of the <a href=\"https://www.usgs.gov/\">U.S. Geological Survey</a>, Esri",
+      "projection": "EPSG:3857, rendered per tile by the image service",
+      "minZoom": 9,
+      "maxZoom": 17,
+      "maxNativeZoom": 16,
+      "checked": "2026-09-06",
+      "placeholder": false,
+      "checkedNote": "Catalogue records read and a tile of each sheet pair requested on 2026-09-06; the 1896 and 1901 pairs were seen rendering in the browser the same day."
+    },
+    {
+      "id": "MPLS-MAP-1993",
+      "city": "mpls",
+      "kind": "arcgis-image",
+      "year": 1993,
+      "service": "https://historical1.arcgis.com/arcgis/rest/services/USA_Historical_Topo_Maps/ImageServer",
+      "rasterIds": [
+        83983,
+        83976
+      ],
+      "title": {
+        "en": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1993",
+        "zh": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles，1993年",
+        "nl": "USGS 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1993"
+      },
+      "yearBasis": "USGS 'date current' of both sheets (1993 edition)",
+      "publisher": "U.S. Geological Survey",
+      "source": {
+        "citation": "U.S. Geological Survey, 1:24,000 Minneapolis South and Minneapolis North quadrangles, 1993 edition. Historical Topographic Map Collection, image service hosted by Esri (raster ids 83983, 83976).",
+        "archive": "USGS",
+        "reference": "Esri raster ids 83983, 83976",
+        "url": "https://historicalmaps.arcgis.com/usgs/"
+      },
+      "licence": {
+        "statement": "Public domain (U.S. Geological Survey); service courtesy of USGS and Esri",
+        "uri": "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+        "basis": "publisher statement: the service's copyright text and USGS copyright policy"
+      },
+      "attr": "Historical Topographic Map Collection courtesy of the <a href=\"https://www.usgs.gov/\">U.S. Geological Survey</a>, Esri",
+      "projection": "EPSG:3857, rendered per tile by the image service",
+      "minZoom": 9,
+      "maxZoom": 17,
+      "maxNativeZoom": 16,
+      "checked": "2026-09-06",
+      "placeholder": false,
+      "checkedNote": "Catalogue records read and a tile of each sheet pair requested on 2026-09-06; the 1896 and 1901 pairs were seen rendering in the browser the same day."
+    },
+    {
+      "id": "LISB-MAP-1878",
+      "city": "lisb",
+      "kind": "xyz",
+      "year": 1878,
+      "url": "https://tiles.arcgis.com/tiles/1dSrzEWVQn5kHHyK/arcgis/rest/services/Cartografia1878_FranciscoCesarGoullard/MapServer/tile/{z}/{y}/{x}",
+      "title": {
+        "en": "Planta de Lisboa, César and Francisco Goullard, 1878",
+        "zh": "里斯本平面圖，César與Francisco Goullard，1878年",
+        "nl": "Plattegrond van Lissabon, César en Francisco Goullard, 1878"
+      },
+      "yearBasis": "year the survey was produced, as stated by the city's geodata catalogue",
+      "publisher": "Câmara Municipal de Lisboa",
+      "source": {
+        "citation": "Câmara Municipal de Lisboa, Cartografia Histórica: planta de Lisboa levantada por César e Francisco Goullard, 1878. Tile service published by CML on ArcGIS Online (geodados_CML).",
+        "archive": "Câmara Municipal de Lisboa, Geodados",
+        "reference": "Cartografia1878_FranciscoCesarGoullard",
+        "url": "https://geodados-cml.hub.arcgis.com/"
+      },
+      "licence": {
+        "statement": "Sem restrições de uso (no use restrictions), CM Lisboa 2017",
+        "uri": null,
+        "basis": "licence stated on the publisher's ArcGIS Online item"
+      },
+      "attr": "Cartografia histórica &copy; <a href=\"https://geodados-cml.hub.arcgis.com/\">Câmara Municipal de Lisboa</a>",
+      "projection": "EPSG:3857",
+      "bounds": [
+        [
+          38.6999,
+          -9.1799
+        ],
+        [
+          38.7367,
+          -9.1143
+        ]
+      ],
+      "minZoom": 11,
+      "maxZoom": 19,
+      "maxNativeZoom": 18,
+      "checked": "2026-09-06",
+      "placeholder": false,
+      "checkedNote": "Service metadata and licence read on ArcGIS Online, a tile requested, and the layer seen rendering in the browser on 2026-09-06."
+    },
+    {
+      "id": "LISB-MAP-1911",
+      "city": "lisb",
+      "kind": "xyz",
+      "year": 1911,
+      "url": "https://tiles.arcgis.com/tiles/1dSrzEWVQn5kHHyK/arcgis/rest/services/CartografiaHistoricaSilvaPinto1911/MapServer/tile/{z}/{y}/{x}",
+      "title": {
+        "en": "Levantamento da Planta de Lisboa, Silva Pinto, 1911",
+        "zh": "里斯本平面圖測繪，Silva Pinto，1911年",
+        "nl": "Levantamento da Planta de Lisboa, Silva Pinto, 1911"
+      },
+      "yearBasis": "publication year of the survey, which was carried out 1904 to 1911 under Júlio António Vieira da Silva Pinto",
+      "publisher": "Câmara Municipal de Lisboa",
+      "source": {
+        "citation": "Câmara Municipal de Lisboa, Cartografia Histórica: Levantamento da Planta de Lisboa (Silva Pinto), 1904-1911, published 1911. Tile service published by CML on ArcGIS Online (geodados_CML).",
+        "archive": "Câmara Municipal de Lisboa, Geodados",
+        "reference": "CartografiaHistoricaSilvaPinto1911",
+        "url": "https://www.arcgis.com/home/item.html?id=ac40bb928d0e46c8a46ca59c4a5f1c9f"
+      },
+      "licence": {
+        "statement": "Sem restrições de uso (no use restrictions), CM Lisboa 2017",
+        "uri": null,
+        "basis": "licence stated on the publisher's ArcGIS Online item"
+      },
+      "attr": "Cartografia histórica &copy; <a href=\"https://geodados-cml.hub.arcgis.com/\">Câmara Municipal de Lisboa</a>",
+      "projection": "EPSG:3857",
+      "bounds": [
+        [
+          38.6907,
+          -9.2359
+        ],
+        [
+          38.7999,
+          -9.086
+        ]
+      ],
+      "minZoom": 11,
+      "maxZoom": 19,
+      "maxNativeZoom": 18,
+      "checked": "2026-09-06",
+      "placeholder": false,
+      "checkedNote": "Service metadata and licence read on ArcGIS Online, a tile requested, and the layer seen rendering in the browser on 2026-09-06."
+    },
+    {
+      "id": "LISB-MAP-1899-1948",
+      "city": "lisb",
+      "kind": "xyz",
+      "year": null,
+      "url": "https://tiles.arcgis.com/tiles/1dSrzEWVQn5kHHyK/arcgis/rest/services/CartografiaHistorica1899_1948/MapServer/tile/{z}/{y}/{x}",
+      "title": {
+        "en": "Cartografia 1899 to 1948 series, undated composite",
+        "zh": "1899至1948年系列圖，未定年的拼接圖",
+        "nl": "Kaartserie 1899 tot 1948, ongedateerde compilatie"
+      },
+      "yearBasis": "undated: the city's catalogue describes a series of sheets produced between 1899 and 1948 and does not say which sheet is which year",
+      "publisher": "Câmara Municipal de Lisboa",
+      "source": {
+        "citation": "Câmara Municipal de Lisboa, Cartografia Histórica: série produzida em 1899-1948. Tile service published by CML on ArcGIS Online (geodados_CML).",
+        "archive": "Câmara Municipal de Lisboa, Geodados",
+        "reference": "CartografiaHistorica1899_1948",
+        "url": "https://www.arcgis.com/home/item.html?id=31f6d7f483484b129c96bf13b97b8899"
+      },
+      "licence": {
+        "statement": "Sem restrições de uso (no use restrictions), CM Lisboa 2017",
+        "uri": null,
+        "basis": "licence stated on the publisher's ArcGIS Online item"
+      },
+      "attr": "Cartografia histórica &copy; <a href=\"https://geodados-cml.hub.arcgis.com/\">Câmara Municipal de Lisboa</a>",
+      "projection": "EPSG:3857",
+      "bounds": [
+        [
+          38.6517,
+          -9.2807
+        ],
+        [
+          38.8255,
+          -9.0448
+        ]
+      ],
+      "minZoom": 11,
+      "maxZoom": 19,
+      "maxNativeZoom": 18,
+      "checked": "2026-09-06",
+      "placeholder": false,
+      "undated": true,
+      "checkedNote": "Service metadata and licence read on ArcGIS Online, a tile requested, and the layer seen rendering in the browser on 2026-09-06."
+    },
+    {
+      "id": "TEHR-MAP-1956-LEAD",
+      "city": "tehr",
+      "kind": null,
+      "year": 1956,
+      "url": null,
+      "title": {
+        "en": "Tehran, A. Sahab, 1956 (David Rumsey Map Collection)",
+        "zh": "德黑蘭，A. Sahab，1956年（David Rumsey地圖收藏）",
+        "nl": "Teheran, A. Sahab, 1956 (David Rumsey Map Collection)"
+      },
+      "yearBasis": "publication year printed on the map (Isfand 1334 / February 1956)",
+      "publisher": "A. Sahab Cartographical Drafting, Tehran",
+      "scale": "1:253,440 as catalogued",
+      "source": {
+        "citation": "Sahab, Abbas. Tehran. 1956 - 1334. Tehran: A. Sahab Constructional & Cartographical Drafting, 1956. Pocket map, 33 x 41 cm on sheet 51 x 73 cm. David Rumsey Map Collection, List No. 11541.002.",
+        "archive": "David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries",
+        "reference": "List No. 11541.002, image 11541002.jp2",
+        "url": "https://www.davidrumsey.com/luna/servlet/detail/RUMSEY~8~1~294523~90065402"
+      },
+      "iiif": "https://www.davidrumsey.com/luna/servlet/iiif/RUMSEY~8~1~294523~90065402/info.json",
+      "licence": {
+        "statement": "CC BY-NC-SA 4.0; credit: David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries",
+        "uri": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        "basis": "collection copyright page (non-commercial use permitted with credit)"
+      },
+      "georeferenced": "on the collection's own Georeferencer viewer (davidrumsey.oldmapsonline.org/id/11541.002), whose tiles are not exposed for reuse; to be georeferenced again in Allmaps from the public IIIF image and served through allmaps.xyz",
+      "attr": "David Rumsey Map Collection, David Rumsey Map Center, Stanford Libraries, CC BY-NC-SA 4.0",
+      "projection": null,
+      "minZoom": 11,
+      "maxZoom": 16,
+      "bounds": null,
+      "checked": null,
+      "placeholder": true,
+      "note": "A lead, not a drawable map. Recorded 2026-09-06 after checking the collection record and its georeferencer page."
+    }
+  ]
+}

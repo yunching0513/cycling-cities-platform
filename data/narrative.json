@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "updated": "2026-09-05",
+    "schema": "docs/data-submission/STORIES.md",
+    "note": "Per-city narrative. Each paragraph sits in one of the nine shared periods (period is the period's start year) and under one of the five factors. The shared frame stays in reference.json stories. The Rotterdam paragraphs below are Lorem Ipsum, at the research team's request: they show the length and position of a city paragraph and are marked placeholder true. No other city has a paragraph yet, and the interface says what is needed instead.",
+    "counts": { "rdam": 3, "mpls": 0, "riga": 0, "buda": 0, "lisb": 0, "tehr": 0 }
+  },
+  "cities": {
+    "mpls": [],
+    "rdam": [
+      {
+        "id": "RDAM-NARR-1920-FORM",
+        "period": 1920,
+        "factor": "form",
+        "title": { "en": "Lorem ipsum dolor sit amet", "zh": "Lorem ipsum dolor sit amet", "nl": "Lorem ipsum dolor sit amet" },
+        "body": {
+          "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.",
+          "zh": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.",
+          "nl": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation."
+        },
+        "author": null,
+        "affiliation": null,
+        "writtenOn": null,
+        "linkedSites": [],
+        "linkedImages": [],
+        "source": { "citation": "[TO BE CONFIRMED]", "archive": null, "reference": null, "url": null, "verifiedBy": null, "verifiedOn": null },
+        "placeholder": true,
+        "verified": false
+      },
+      {
+        "id": "RDAM-NARR-1950-ALT",
+        "period": 1950,
+        "factor": "alt",
+        "title": { "en": "Consectetur adipiscing elit sed do", "zh": "Consectetur adipiscing elit sed do", "nl": "Consectetur adipiscing elit sed do" },
+        "body": {
+          "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia.",
+          "zh": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia.",
+          "nl": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia."
+        },
+        "author": null,
+        "affiliation": null,
+        "writtenOn": null,
+        "linkedSites": [],
+        "linkedImages": [],
+        "source": { "citation": "[TO BE CONFIRMED]", "archive": null, "reference": null, "url": null, "verifiedBy": null, "verifiedOn": null },
+        "placeholder": true,
+        "verified": false
+      },
+      {
+        "id": "RDAM-NARR-1960-POLICY",
+        "period": 1960,
+        "factor": "policy",
+        "title": { "en": "Ut enim ad minim veniam", "zh": "Ut enim ad minim veniam", "nl": "Ut enim ad minim veniam" },
+        "body": {
+          "en": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi.",
+          "zh": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi.",
+          "nl": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi."
+        },
+        "author": null,
+        "affiliation": null,
+        "writtenOn": null,
+        "linkedSites": [],
+        "linkedImages": [],
+        "source": { "citation": "[TO BE CONFIRMED]", "archive": null, "reference": null, "url": null, "verifiedBy": null, "verifiedOn": null },
+        "placeholder": true,
+        "verified": false
+      }
+    ],
+    "riga": [],
+    "buda": [],
+    "lisb": [],
+    "tehr": []
+  }
+}

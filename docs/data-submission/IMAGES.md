@@ -88,6 +88,18 @@ There is already a record in the tool whose image shows Amsterdam rather than
 Rotterdam, and the interface says so beside the picture. Being explicit about a mismatch
 is better than quietly using an image that nearly fits.
 
+## How a record appears
+
+A record is a card first and a picture second. The card carries the caption, what the
+image shows, when it was made, who made it, which archive holds it and under what
+reference, the rights statement and its basis, and whether embedding has been cleared
+and by whom. That card is complete on its own, and it is what a reader sees in the
+tool's record panel for your city, and on the map where a record has coordinates.
+
+The picture itself is added to the card only when `may_embed` is `yes` and `cleared_by`
+is filled. Until then the card links to the archive. So your catalogue work is visible
+as soon as it is loaded, and nothing waits on a rights question except the picture.
+
 ## What happens next
 
 1. Rows load with `cleared: false`. The record shows a link to the archive and the

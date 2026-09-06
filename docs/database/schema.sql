@@ -1,167 +1,149 @@
 -- Cycling Cities Tool 2: contribution inbox
 --
--- This schema is an INBOX, not the live data source. Contributors write here;
--- the published site keeps reading the static JSON files until a maintainer
--- promotes a verified row. That keeps the review gate the project depends on.
+-- This schema is an INBOX, not the live data source. The browser can only insert
+-- into it; nothing on the published site reads from it. A maintainer reads it with
+-- the service role key (scripts/inbox.mjs), verifies rows, and exports them into
+-- the static JSON the site publishes. Git stays the record of what changed.
 --
--- Run in the Supabase SQL editor, or as a migration. Requires pgcrypto for
--- gen_random_uuid(), which Supabase enables by default.
+-- There are no accounts. A contributor is identified by the name and email they
+-- type, and the maintainer checks that against the people Ruth has named. That is
+-- enough while the link is shared privately and the site is noindex; if unwanted
+-- submissions ever appear, add Turnstile in front of the form or switch the insert
+-- policy to authenticated users. Nothing below has to change for that.
+--
+-- Run in the Supabase SQL editor, or as a migration.
 
--- ---------------------------------------------------------------- people --
+create extension if not exists pgcrypto;
 
-create table if not exists public.contributor (
-  user_id     uuid primary key references auth.users(id) on delete cascade,
-  display_name text not null,
-  affiliation text,
-  created_at  timestamptz not null default now()
-);
-
--- A contributor may write only for the cities listed here. This table is the
--- whole authorisation model: adding a row is how you authorise someone.
-create table if not exists public.contributor_city (
-  user_id    uuid not null references public.contributor(user_id) on delete cascade,
-  city_slug  text not null,
-  primary key (user_id, city_slug)
-);
-
--- ----------------------------------------------------------- submissions --
+-- ------------------------------------------------------------------ types --
 
 do $$ begin
-  create type public.submission_status as enum ('draft', 'submitted', 'verified', 'rejected');
-exception when duplicate_object then null;
-end $$;
+  create type public.contribution_kind as enum ('modal_split', 'image', 'story', 'map', 'pin', 'review');
+exception when duplicate_object then null; end $$;
 
-create table if not exists public.modal_split_submission (
-  id            uuid primary key default gen_random_uuid(),
-  submitted_by  uuid not null references auth.users(id) on delete restrict,
-  status        public.submission_status not null default 'draft',
+do $$ begin
+  create type public.contribution_status as enum ('submitted', 'verified', 'rejected', 'archived');
+exception when duplicate_object then null; end $$;
 
-  -- where
-  city_slug       text not null,
-  point_id        text not null,
-  point_name      text not null,
-  lat             double precision not null check (lat between -90 and 90),
-  lon             double precision not null check (lon between -180 and 180),
-  location_basis  text not null
-                  check (location_basis in ('historical map', 'street address',
-                                            'modern equivalent', 'approximate')),
-  -- when
-  year            int not null check (year between 1800 and 2100),
-  observed_date   date,
-  observed_hours  text,
+-- ------------------------------------------------------------ provenance --
+-- The project's honesty rule, written as a function so the table can enforce it:
+-- a row is only 'verified' when its payload names a source. Which field counts as
+-- the source differs by kind and follows the templates in docs/data-submission/.
 
-  -- what was counted
-  mode_bicycle    numeric check (mode_bicycle >= 0),
-  mode_walking    numeric check (mode_walking >= 0),
-  mode_transit    numeric check (mode_transit >= 0),
-  mode_car        numeric check (mode_car >= 0),
-  unit            text not null check (unit in ('count', 'percent')),
-  total_observed  numeric check (total_observed >= 0),
+create or replace function public.contribution_has_source(k public.contribution_kind, p jsonb)
+returns boolean language sql immutable as $$
+  select case k
+    when 'modal_split' then coalesce(p->>'source_citation', '') not in ('', '[TO BE CONFIRMED]')
+    when 'story'       then coalesce(p->>'sources', '') not in ('', '[TO BE CONFIRMED]')
+    when 'image'       then coalesce(p->>'archive', '') <> '' and coalesce(p->>'rights_statement', '') <> ''
+    when 'map'         then coalesce(p->>'archive', p->>'source_url', '') <> '' and coalesce(p->>'rights_statement', '') <> ''
+    else false
+  end
+$$;
 
-  -- the categories the source actually used, before anyone folded them into four
-  original_categories text,
-  mapping_notes       text,
+-- ---------------------------------------------------------------- table --
 
-  -- how it was derived
-  derivation      text check (derivation in ('measured', 'estimated', 'interpolated')),
-  method          text,
+create table if not exists public.contribution (
+  id              uuid primary key default gen_random_uuid(),
+  kind            public.contribution_kind not null,
+  status          public.contribution_status not null default 'submitted',
 
-  -- where it came from
-  source_citation text,
-  source_archive  text,
-  source_reference text,
-  source_url      text,
+  -- who and where
+  city_slug       text check (city_slug is null or city_slug ~ '^[a-z]{3,8}$'),
+  submitted_name  text not null check (length(btrim(submitted_name)) between 1 and 120),
+  submitted_email text check (submitted_email is null or (
+                    length(submitted_email) <= 254
+                    and submitted_email ~* '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$')),
+  client_lang     text check (client_lang is null or client_lang in ('en', 'zh', 'nl')),
+  tool            text not null default 'cc-tool2' check (length(tool) <= 40),
+
+  -- the submission itself: one template row, one pin, or one set of review decisions
+  payload         jsonb not null check (jsonb_typeof(payload) = 'object' and pg_column_size(payload) <= 65536),
+
+  -- filled by the maintainer, never by the browser
   verified_by     text,
   verified_on     date,
-  notes           text,
+  review_note     text,
+  exported_at     timestamptz,
 
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now(),
 
-  -- The project's own rule, written as a constraint rather than left to habit:
-  -- nothing becomes 'verified' without a named checker and a real citation.
+  -- nothing becomes 'verified' without a named checker, a date and a source; pins and
+  -- review decisions are proposals and cannot be verified at all, only archived
   constraint verified_needs_provenance check (
     status <> 'verified' or (
       verified_by is not null
       and verified_on is not null
-      and derivation is not null
-      and source_citation is not null
-      and source_citation <> '[TO BE CONFIRMED]'
+      and kind in ('modal_split', 'image', 'story', 'map')
+      and public.contribution_has_source(kind, payload)
     )
-  ),
-
-  -- percentages must not quietly add up to more than a whole
-  constraint percent_within_100 check (
-    unit <> 'percent' or
-    coalesce(mode_bicycle, 0) + coalesce(mode_walking, 0)
-      + coalesce(mode_transit, 0) + coalesce(mode_car, 0) <= 100.5
-  ),
-
-  -- one row per point per year per contributor
-  unique (submitted_by, city_slug, point_id, year)
+  )
 );
 
-create index if not exists modal_split_submission_city_year
-  on public.modal_split_submission (city_slug, year);
+create index if not exists contribution_status_created on public.contribution (status, created_at);
+create index if not exists contribution_kind_city on public.contribution (kind, city_slug);
 
 create or replace function public.touch_updated_at() returns trigger
 language plpgsql as $$
 begin new.updated_at = now(); return new; end $$;
 
-drop trigger if exists modal_split_submission_touch on public.modal_split_submission;
-create trigger modal_split_submission_touch
-  before update on public.modal_split_submission
+drop trigger if exists contribution_touch on public.contribution;
+create trigger contribution_touch
+  before update on public.contribution
   for each row execute function public.touch_updated_at();
 
+-- A coarse flood guard. A filled template arrives as one request with many rows, so
+-- the threshold is generous; it exists to stop a runaway script, not a busy researcher.
+-- security definer because the inserting role may not read the table.
+create or replace function public.contribution_rate_guard() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.submitted_email is not null and (
+    select count(*) from public.contribution
+    where submitted_email = new.submitted_email and created_at > now() - interval '10 minutes'
+  ) >= 500 then
+    raise exception 'too many submissions from this address in a short time';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists contribution_rate on public.contribution;
+create trigger contribution_rate
+  before insert on public.contribution
+  for each row execute function public.contribution_rate_guard();
+
 -- --------------------------------------------------- row level security --
--- Nothing below grants anonymous access. The published site does not read
--- this table at all; it reads the static JSON that a maintainer writes.
+-- The browser holds the anon key. It may insert, and only as a plain submission;
+-- it cannot read anything back, change anything, or delete anything. There is no
+-- policy for select, update or delete on purpose: the maintainer's service role
+-- bypasses RLS, and that is the only reader.
 
-alter table public.contributor            enable row level security;
-alter table public.contributor_city       enable row level security;
-alter table public.modal_split_submission enable row level security;
+alter table public.contribution enable row level security;
 
-create policy "read own profile" on public.contributor
-  for select to authenticated using (user_id = auth.uid());
+revoke all on public.contribution from anon, authenticated;
+grant insert on public.contribution to anon;
 
-create policy "read own city grants" on public.contributor_city
-  for select to authenticated using (user_id = auth.uid());
-
-create policy "read own submissions" on public.modal_split_submission
-  for select to authenticated using (submitted_by = auth.uid());
-
--- A contributor may only insert rows for a city they have been granted, and
--- only as their own. They cannot insert something already marked verified.
-create policy "insert into granted cities" on public.modal_split_submission
-  for insert to authenticated with check (
-    submitted_by = auth.uid()
-    and status in ('draft', 'submitted')
-    and exists (
-      select 1 from public.contributor_city c
-      where c.user_id = auth.uid()
-        and c.city_slug = modal_split_submission.city_slug
-    )
+drop policy if exists "anon may submit" on public.contribution;
+create policy "anon may submit" on public.contribution
+  for insert to anon
+  with check (
+    status = 'submitted'
+    and verified_by is null
+    and verified_on is null
+    and review_note is null
+    and exported_at is null
   );
 
--- Editing is allowed while a row is still theirs and not yet accepted. The
--- WITH CHECK clause is what stops a contributor promoting their own row.
-create policy "edit own unaccepted rows" on public.modal_split_submission
-  for update to authenticated
-  using (submitted_by = auth.uid() and status in ('draft', 'submitted'))
-  with check (submitted_by = auth.uid() and status in ('draft', 'submitted'));
+-- The page must send Prefer: return=minimal. With no select policy, an insert that
+-- asks for its row back is refused, which is the intended behaviour.
 
-create policy "delete own drafts" on public.modal_split_submission
-  for delete to authenticated
-  using (submitted_by = auth.uid() and status = 'draft');
+-- ------------------------------------------------------------ hardening --
+-- From the Supabase security advisor: pin search_path on every function, and stop the
+-- API roles from calling the trigger functions by RPC. Triggers still fire; the check
+-- constraint still evaluates, because anon keeps execute on contribution_has_source.
 
--- Verification and rejection are deliberately not expressible through any
--- policy. A maintainer does them with the service role, server side.
-
--- ------------------------------------------------------------- scans ----
--- Create a PRIVATE storage bucket named 'submission-scans' in the dashboard,
--- then restrict it to the owner's own folder:
---
--- create policy "own folder read" on storage.objects for select to authenticated
---   using (bucket_id = 'submission-scans' and (storage.foldername(name))[1] = auth.uid()::text);
--- create policy "own folder write" on storage.objects for insert to authenticated
---   with check (bucket_id = 'submission-scans' and (storage.foldername(name))[1] = auth.uid()::text);
+alter function public.contribution_has_source(public.contribution_kind, jsonb) set search_path = '';
+alter function public.touch_updated_at() set search_path = '';
+revoke execute on function public.contribution_rate_guard() from public, anon, authenticated;
+revoke execute on function public.touch_updated_at() from public, anon, authenticated;

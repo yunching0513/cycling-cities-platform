@@ -26,13 +26,16 @@ const state = {
   splitPct: .5,
   histOpa: .85,
   playing: false,
-  sheet: 'half'
+  sheet: 'half',
+  narrShared: false,   // read the shared frame even while a city is selected
+  histOverride: null   // a dated map shown on request beyond the gap rule
 };
 
 /* filled by loadData() */
 let DECADES = [], ERAS = {}, FACTORS = [], SPLIT_C = [], CITIES = {}, NETWORK = [], STORIES = [];
 let INTERSECTIONS = [];
 let SITES = [], SPLIT = [], META = {};
+let MAPS = [], NARR = {}, IMAGES = [], HIST_MAX_GAP = 25;
 
 const T = () => UI[state.lang];
 const tr = obj => (obj && (obj[state.lang] || obj.en)) || '';
@@ -50,8 +53,47 @@ function stepLabel(y) {
   if (state.lang === 'nl') return isDecade ? `jaren ${y}` : String(y);
   return isDecade ? `${y}s` : String(y);
 }
-/* A city may have no dated map cleared for it; one must not be invented. */
-const histOf = c => (CITIES[c] && CITIES[c].hist) || null;
+/* @maps-logic
+   ---------- dated maps ----------
+   One city may hold several dated maps. The interface shows the one nearest to the selected
+   step and says how far apart they are; beyond HIST_MAX_GAP years it offers the map on
+   request instead of showing it by default. A row marked placeholder is a lead without a
+   drawable file and is never drawn, and no year is ever inferred for an undated map. */
+const mapsOf = c => MAPS.filter(m => m.city === c && !m.placeholder);
+const hasMaps = c => mapsOf(c).length > 0;
+const mapLeads = c => MAPS.filter(m => m.city === c && m.placeholder).length;
+/* A step covers ten years; the last step runs from its start year to today. */
+function stepRange(y) { return y % 10 === 0 ? [y, y + 9] : [y, Math.max(y, NOW_YEAR)]; }
+function gapTo(year, step) { const [a, b] = stepRange(step); return year < a ? a - year : year > b ? year - b : 0; }
+/* ties go to a baked archive, which works without the live service */
+const KIND_RANK = { pmtiles: 0, topotijdreis: 1, xyz: 2, 'arcgis-image': 2 };
+function nearestMap(c, step) {
+  const dated = mapsOf(c).filter(m => m.year != null);
+  if (!dated.length) return null;
+  return dated.map(m => ({ m, gap: gapTo(m.year, step) }))
+    .sort((a, b) => a.gap - b.gap || (KIND_RANK[a.m.kind] ?? 9) - (KIND_RANK[b.m.kind] ?? 9))[0];
+}
+const undatedMap = c => mapsOf(c).find(m => m.year == null) || null;
+/* What the overlay shows for a city at a step, and why. */
+function mapChoice(c, step) {
+  const near = nearestMap(c, step);
+  const ov = state.histOverride && mapsOf(c).find(m => m.id === state.histOverride);
+  if (ov) return { map: ov, gap: ov.year == null ? null : gapTo(ov.year, step), mode: 'override', near };
+  if (near && near.gap <= HIST_MAX_GAP) return { map: near.m, gap: near.gap, mode: 'auto', near };
+  const ud = undatedMap(c);
+  if (ud) return { map: ud, gap: null, mode: 'undated', near };
+  return { map: null, gap: near ? near.gap : null, mode: near ? 'far' : 'none', near };
+}
+/* A series row carries a years list and a {year} placeholder; expand it to one map per year. */
+function expandMaps(rows) {
+  const fill = (v, y) => typeof v === 'string' ? v.replace(/\{year\}/g, y)
+    : (v && typeof v === 'object' && !Array.isArray(v))
+      ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fill(x, y)])) : v;
+  return rows.flatMap(r => Array.isArray(r.years)
+    ? r.years.map(y => Object.assign(fill(r, y), { id: `${r.id}-${y}`, year: y, url: r.service.replace(/\{year\}/g, y), series: r.id }))
+    : [r]);
+}
+/* @end maps-logic */
 const sitesOf = city => SITES.filter(s => s.city === city);
 const siteById = id => SITES.find(s => s.id === id);
 const splitFor = (city, d) => SPLIT.find(r => r.city === city && r.decade === d);
@@ -62,6 +104,13 @@ let map = null, currentBase = null, pins = null, network = null, histLayer = nul
    so each city keeps its own centre while both are read at the same scale. */
 let map2 = null, pins2 = null, base2 = null, syncing = false;
 let interL = null, interL2 = null;
+const histLayers = { 1: null, 2: null }, histIssue = { 1: '', 2: '' };
+/* a sheet on its way out keeps drawing while the next one fades in over it */
+const histFading = { 1: null, 2: null };
+const FADE_MS = 700;
+let imgL = null, imgL2 = null;
+/* sites drawn in the previous render, so only newly appearing markers fade in */
+let lastSites = new Set();
 let pinMarker = null, pinLL = null;
 const BASES = {};
 
@@ -72,16 +121,22 @@ async function loadJSON(url) {
   return res.json();
 }
 async function loadData() {
-  const [ref, sites, split, inters] = await Promise.all([
+  const [ref, sites, split, inters, maps, narr, imgs] = await Promise.all([
     loadJSON('./data/reference.json'),
     loadJSON('./data/sites.json'),
     loadJSON('./data/modalsplit.json'),
-    loadJSON('./data/intersections.json')
+    loadJSON('./data/intersections.json'),
+    loadJSON('./data/maps.json'),
+    loadJSON('./data/narrative.json'),
+    loadJSON('./data/images.json')
   ]);
   DECADES = ref.decades; ERAS = ref.eras; FACTORS = ref.factors; SPLIT_C = ref.splitColours;
   CITIES = ref.cities; NETWORK = ref.networkCities; STORIES = ref.stories;
   SITES = sites.sites; SPLIT = split.records; INTERSECTIONS = inters.intersections;
-  META = { sites: sites.meta, split: split.meta, inters: inters.meta };
+  MAPS = expandMaps(maps.maps || []);
+  if (maps.meta && Number.isFinite(maps.meta.maxGap)) HIST_MAX_GAP = maps.meta.maxGap;
+  NARR = narr.cities || {}; IMAGES = imgs.images || [];
+  META = { sites: sites.meta, split: split.meta, inters: inters.meta, maps: maps.meta, narr: narr.meta, imgs: imgs.meta };
 
   state.active = new Set(FACTORS.map(f => f.id));
   if (CITIES[params.get('city')]) state.city = params.get('city');
@@ -101,16 +156,29 @@ function showLoadError(err) {
 }
 
 /* ---------- map ---------- */
-const ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+/* Basemaps are Esri's keyless raster services. CARTO's free tiles began returning
+   "API KEY REQUIRED" watermarks at city zoom levels in September 2026 (docs/CHANGELOG.md),
+   so the paper look now comes from the Light Gray Canvas pair: the base alone for 'plain',
+   base plus the reference labels for 'light'. Light Gray is cached to zoom 16 and is
+   upscaled beyond that; the street map goes to 19. */
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+const ATTR = 'Tiles &copy; <a href="https://www.esri.com/">Esri</a>: Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, and the GIS user community';
+const ATTR_STREET = 'Tiles &copy; <a href="https://www.esri.com/">Esri</a>: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, and the GIS User Community';
+const esriLayer = (svc, attr, native) =>
+  L.tileLayer(`${ESRI}${svc}/MapServer/tile/{z}/{y}/{x}`, { attribution: attr, maxZoom: 19, maxNativeZoom: native });
+const lightBase = () => L.layerGroup([
+  esriLayer('Canvas/World_Light_Gray_Base', ATTR, 16),
+  esriLayer('Canvas/World_Light_Gray_Reference', '', 16)
+]);
 function initMap() {
   map = L.map('map', { zoomControl: false, minZoom: 2, worldCopyJump: true })
     .setView(CITIES[state.city].center, CITIES[state.city].zoom);
   map.createPane('hist');
   map.getPane('hist').style.zIndex = 350;
   Object.assign(BASES, {
-    light:   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',           { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }),
-    plain:   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',      { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }),
-    voyager: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' })
+    light:   lightBase(),
+    plain:   esriLayer('Canvas/World_Light_Gray_Base', ATTR, 16),
+    voyager: esriLayer('World_Street_Map', ATTR_STREET, 19)
   });
   currentBase = BASES.light.addTo(map);
   pins = L.layerGroup().addTo(map);
@@ -119,11 +187,15 @@ function initMap() {
 
   map2 = L.map('map2', { zoomControl: false, minZoom: 2, attributionControl: false })
     .setView(CITIES.rdam.center, CITIES.rdam.zoom);
-  base2 = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }).addTo(map2);
+  base2 = lightBase().addTo(map2);
   pins2 = L.layerGroup().addTo(map2);
   interL = L.layerGroup().addTo(map);
   interL2 = L.layerGroup().addTo(map2);
+  imgL = L.layerGroup().addTo(map);
+  imgL2 = L.layerGroup().addTo(map2);
+  /* the second map takes its own city's overlay in comparison, so it needs the same pane */
+  map2.createPane('hist');
+  map2.getPane('hist').style.zIndex = 350;
   linkZoom(map, map2); linkZoom(map2, map);
 }
 
@@ -170,69 +242,279 @@ function pmtilesLayer(url, opts) {
   return layer;
 }
 
-/* ---------- historical overlay ---------- */
-function histStatus(stateText, detail) {
-  const h = histOf(state.city), t = T();
-  if (!h) { $('#histStatus').innerHTML = `<span class="k">${t.kLayer}</span> ${t.histNone}`; return; }
-  $('#histStatus').innerHTML =
-    `<span class="k">${t.kLayer}</span> ${tr(h.label)}<br>` +
-    `<span class="k">${t.kZoom}</span> ${h.minZoom}–${h.maxZoom} · <span class="k">${t.kStatus}</span> ${stateText}` +
-    (detail ? `<br><span class="k">${t.kNote}</span> ${detail}` : '');
+/* ---------- Topotijdreis (Kadaster) layer ----------
+   The Dutch historical sheets exist only on the RD grid (EPSG:28992). Each Web Mercator tile
+   is composed on a canvas from the RD tiles that cover it, reprojected with proj4. Ported from
+   the author's Netherlands-historical-map project; the coarsest RD level that still matches
+   the requested resolution is used, so a tile needs one to four source images. */
+const RD = { origin: [-30515500, 31112400], size: 256,
+  res: [3251.206502413005, 1625.6032512065026, 812.8016256032513, 406.40081280162565, 203.20040640081282,
+        101.60020320040641, 50.800101600203206, 25.400050800101603, 12.700025400050801, 6.350012700025401,
+        3.1750063500127004, 1.5875031750063502] };
+let rdTo3857 = null;
+function rdProj() {
+  if (rdTo3857 || typeof proj4 === 'undefined') return rdTo3857;
+  proj4.defs('EPSG:28992', '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 '
+    + '+x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.8774,4.0725 '
+    + '+units=m +no_defs');
+  rdTo3857 = proj4('EPSG:28992', 'EPSG:3857');
+  return rdTo3857;
 }
-function removeHist() { if (histLayer) { map.removeLayer(histLayer); histLayer = null; } }
-function addHist() {
-  removeHist();
-  const h = histOf(state.city), t = T();
-  if (!h) { histStatus(); return; }
-  if (h.kind === 'pmtiles') {
-    const l = pmtilesLayer(h.url, { minZoom: h.minZoom, maxZoom: h.maxZoom,
-      bounds: L.latLngBounds(h.bounds), attribution: h.attr, opacity: state.histOpa });
-    if (!l) { histStatus(t.unavailable, t.nPmLib); return; }
-    histLayer = l.addTo(map);
-    histStatus(t.loading);
-    l._pm.getHeader()
-      .then(hd => histStatus(T().ready, `tile z${hd.minZoom}–z${hd.maxZoom} · ${T().nPm}`))
-      .catch(() => histStatus(T().failed, T().nPmFail));
-  } else {
-    histLayer = L.tileLayer(h.url, { pane: 'hist', minZoom: h.minZoom, maxZoom: h.maxZoom,
-      maxNativeZoom: h.maxZoom, attribution: h.attr, opacity: state.histOpa }).addTo(map);
-    histStatus(t.loading);
-    let settled = false;
-    histLayer.on('tileload', () => { if (!settled) { settled = true; histStatus(T().ready, T().nXyz); } });
-    histLayer.on('tileerror', () => { if (!settled) histStatus(T().failed, T().nXyzFail); });
+function topotijdreisLayer(url, opts) {
+  const P = rdProj();
+  if (!P) return null;
+  const layer = L.gridLayer(Object.assign({ tileSize: RD.size, pane: 'hist' }, opts || {}));
+  layer.createTile = function (coords, done) {
+    const cv = L.DomUtil.create('canvas');
+    cv.width = RD.size; cv.height = RD.size;
+    const ctx = cv.getContext('2d'), m = this._map;
+    if (!ctx || !m) { setTimeout(() => done(undefined, cv), 0); return cv; }
+    const tp = L.point(coords.x, coords.y).scaleBy(L.point(RD.size, RD.size));
+    const nw = L.CRS.EPSG3857.project(m.unproject(tp, coords.z));
+    const se = L.CRS.EPSG3857.project(m.unproject(tp.add(L.point(RD.size, RD.size)), coords.z));
+    const a = P.inverse([nw.x, nw.y]), b = P.inverse([se.x, se.y]);
+    const minX = Math.min(a[0], b[0]), maxX = Math.max(a[0], b[0]);
+    const minY = Math.min(a[1], b[1]), maxY = Math.max(a[1], b[1]);
+    const target = (maxX - minX) / RD.size;
+    let lvl = RD.res.length - 1;
+    for (let i = 0; i < RD.res.length; i++) if (RD.res[i] <= target * 1.5) { lvl = i; break; }
+    const tm = RD.res[lvl] * RD.size;
+    const c0 = Math.floor((minX - RD.origin[0]) / tm), c1 = Math.floor((maxX - RD.origin[0]) / tm);
+    const r0 = Math.floor((RD.origin[1] - maxY) / tm), r1 = Math.floor((RD.origin[1] - minY) / tm);
+    const toPx = (rx, ry) => {
+      const mc = P.forward([rx, ry]);
+      const wp = m.project(L.CRS.EPSG3857.unproject(L.point(mc[0], mc[1])), coords.z);
+      return [wp.x - tp.x, wp.y - tp.y];
+    };
+    let left = (c1 - c0 + 1) * (r1 - r0 + 1);
+    if (left <= 0) { setTimeout(() => done(undefined, cv), 0); return cv; }
+    const finish = () => { if (--left === 0) done(undefined, cv); };
+    for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) {
+      const x0 = RD.origin[0] + c * tm, y0 = RD.origin[1] - r * tm;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const q0 = toPx(x0, y0), q1 = toPx(x0 + tm, y0 - tm);
+          ctx.drawImage(img, q0[0], q0[1], q1[0] - q0[0], q1[1] - q0[1]);
+        } catch (e) { /* a tainted or broken image leaves the tile blank */ }
+        finish();
+      };
+      img.onerror = finish;
+      img.src = `${url}/${lvl}/${r}/${c}`;
+    }
+    return cv;
+  };
+  return layer;
+}
+
+/* ---------- ArcGIS image service layer ----------
+   Esri's historical topographic map service holds every USGS sheet as its own raster.
+   Locking each tile request to named rasters draws exactly the chosen sheets, so a row
+   can say which year it shows. A tile is one exportImage call for the tile's own bounds. */
+const ArcImageLayer = L.TileLayer.extend({
+  getTileUrl(coords) {
+    const R = 20037508.342789244, n = Math.pow(2, coords.z);
+    const xmin = coords.x / n * 2 * R - R, xmax = (coords.x + 1) / n * 2 * R - R;
+    const ymax = R - coords.y / n * 2 * R, ymin = R - (coords.y + 1) / n * 2 * R;
+    const rule = encodeURIComponent(JSON.stringify({ mosaicMethod: 'esriMosaicLockRaster', lockRasterIds: this.options.rasterIds }));
+    return `${this.options.service}/exportImage?f=image&format=jpgpng&bbox=${xmin},${ymin},${xmax},${ymax}`
+      + `&bboxSR=3857&imageSR=3857&size=256,256&mosaicRule=${rule}`;
   }
+});
+
+/* ---------- historical overlay ----------
+   One layer per map pane. The choice of map is re-read on every render, so moving the
+   slider swaps the sheet when a different year becomes the nearest one, and comparison
+   gives each city its own map. */
+const paneMap = n => n === 2 ? map2 : map;
+const histCities = () => state.global ? [] : state.compare ? [state.city, ensureCityB()] : [state.city];
+
+function buildHist(m, opacity) {
+  const common = { minZoom: m.minZoom, maxZoom: m.maxZoom, attribution: m.attr, opacity };
+  if (m.bounds) common.bounds = L.latLngBounds(m.bounds);
+  if (m.kind === 'pmtiles') return pmtilesLayer(m.url, common);
+  if (m.kind === 'topotijdreis') return topotijdreisLayer(m.url, common);
+  if (m.kind === 'arcgis-image') return new ArcImageLayer('', Object.assign(common, { pane: 'hist', maxNativeZoom: m.maxNativeZoom || m.maxZoom, service: m.service, rasterIds: m.rasterIds }));
+  return L.tileLayer(m.url, Object.assign(common, { pane: 'hist', maxNativeZoom: m.maxNativeZoom || m.maxZoom }));
+}
+/* Each layer reports its own loading state, so the status line says whether the map on
+   screen has actually arrived, not merely that it was asked for. Details are stored as
+   keys and resolved at render time, so a language switch does not strand them. */
+function watchHist(l, m) {
+  l._cc = { id: m.id, state: 'loading', detail: null, extra: '' };
+  const set = (st, key, extra) => { l._cc.state = st; l._cc.detail = key; l._cc.extra = extra || ''; renderHistStatus(); };
+  if (m.kind === 'pmtiles') {
+    l._pm.getHeader().then(hd => set('ready', 'nPm', `tile z${hd.minZoom}–z${hd.maxZoom} ·`)).catch(() => set('failed', 'nPmFail'));
+  } else if (m.kind === 'topotijdreis') {
+    l.once('load', () => set('ready', 'nTopo'));
+  } else {
+    /* the composite's caveat belongs to undated services only; a dated sheet needs none */
+    const note = m.kind === 'arcgis-image' ? 'nArc' : (m.undated ? 'nXyz' : null);
+    let settled = false;
+    l.on('tileload', () => { if (!settled) { settled = true; set('ready', note); } });
+    l.on('tileerror', () => { if (!settled) set('failed', 'nXyzFail'); });
+  }
+}
+/* ---------- crossfade ----------
+   A swap keeps the current sheet on screen until the next one has tiles, then fades the
+   old out as the new fades in, so playback reads as a dissolve rather than a cut with a
+   blank in the middle. The transition itself is CSS on the layer container (styles.css),
+   which the reduced-motion rule turns off. */
+const REVEAL_MS = 1000;   // show whatever has arrived by then, so a slow service still appears within a playback step
+const targetOpacity = n => (n === 1 && state.swipeOn ? 1 : state.histOpa);
+const paneLayers = n => [histLayers[n], histFading[n]].filter(Boolean);
+function removeSheet(n, l) { if (!l) return; clearTimeout(l._ccTimer); paneMap(n).removeLayer(l); }
+function discardFading(n) { removeSheet(n, histFading[n]); histFading[n] = null; }
+/* keep a visible sheet on screen as the outgoing one; only one at a time per pane */
+function holdOutgoing(n, l) { if (histFading[n] !== l) { discardFading(n); histFading[n] = l; } }
+/* fade a visible sheet to nothing, then remove it */
+function fadeOut(n, l) {
+  holdOutgoing(n, l);
+  l.setOpacity(0);
+  clearTimeout(l._ccTimer);
+  l._ccTimer = setTimeout(() => { if (histFading[n] === l) histFading[n] = null; paneMap(n).removeLayer(l); }, FADE_MS + 60);
+}
+function dropHist(n) {
+  const l = histLayers[n];
+  histLayers[n] = null;
+  histIssue[n] = '';
+  if (l) { if (l._cc && l._cc.shown) fadeOut(n, l); else removeSheet(n, l); }
+  else if (histFading[n]) fadeOut(n, histFading[n]);
+  histLayer = histLayers[1];
+}
+function applyHist(n, city) {
+  const ch = mapChoice(city, decade());
+  const want = ch.map ? ch.map.id : null;
+  const cur = histLayers[n] ? histLayers[n]._cc.id : null;
+  if (cur === want) return ch;
+  const old = histLayers[n];
+  histLayers[n] = null;
+  histIssue[n] = '';
+  /* a sheet that never became visible is simply removed; a visible one waits for its successor */
+  if (old) { if (old._cc && old._cc.shown) holdOutgoing(n, old); else removeSheet(n, old); }
+  if (ch.map) {
+    const l = buildHist(ch.map, 0);
+    if (!l) {
+      histIssue[n] = ch.map.kind === 'topotijdreis' ? 'nProjLib' : 'nPmLib';
+      if (histFading[n]) fadeOut(n, histFading[n]);
+    } else {
+      watchHist(l, ch.map);
+      histLayers[n] = l.addTo(paneMap(n));
+      const reveal = () => {
+        if (histLayers[n] !== l || l._cc.shown) return;
+        l._cc.shown = true;
+        l.setOpacity(targetOpacity(n));
+        if (histFading[n]) fadeOut(n, histFading[n]);
+        updateClip();
+      };
+      l.once('load', reveal);
+      setTimeout(reveal, REVEAL_MS);
+    }
+  } else if (histFading[n]) fadeOut(n, histFading[n]);
+  histLayer = histLayers[1];
+  return ch;
+}
+function refreshHist() {
+  const cities = histCities();
+  if (!state.histOn || !cities.length) {
+    dropHist(1); dropHist(2);
+    if (state.swipeOn) setSwipe(false);
+    $('#swipeBtn').disabled = true;
+    renderHistStatus();
+    return;
+  }
+  applyHist(1, cities[0]);
+  if (state.compare) applyHist(2, cities[1]); else dropHist(2);
+  if (state.compare && state.swipeOn) setSwipe(false);
+  $('#swipeBtn').disabled = !(histLayers[1] && !state.compare);
   updateClip();
+  renderHistStatus();
 }
 function setHist(on) {
-  state.histOn = on && !state.compare && !state.global && !!histOf(state.city);
+  state.histOn = on && !state.global && histCities().some(hasMaps);
   $('#histBtn').classList.toggle('active', state.histOn);
-  $('#swipeBtn').disabled = !state.histOn;
-  if (state.histOn) addHist();
-  else {
-    removeHist(); setSwipe(false);
-    /* a city with no dated map is not 'off', it has nothing to show */
-    const why = histOf(state.city) ? T().layerOff : T().histNone;
-    $('#histStatus').innerHTML = `<span class="k">${T().kLayer}</span> ${why}`;
+  if (!state.histOn) state.histOverride = null;
+  refreshHist();
+}
+
+/* The status block is the honest part of the overlay: it names the sheet, its year, how
+   far that year is from the step, its source and its licence, and offers a farther map on
+   request rather than showing it silently. */
+function histStatusFor(n, city) {
+  const t = T(), ch = mapChoice(city, decade()), l = histLayers[n], step = stepLabel(decade());
+  const k = key => `<span class="k">${key}</span>`;
+  const head = state.compare ? `<span class="hs-city">${cityName(city)}</span>` : '';
+  const anyway = near => near ? `<button type="button" class="hs-ov" data-ov="${near.m.id}">${t.histShowAnyway(near.m.year)}</button>` : '';
+  if (!state.histOn) return head + `${k(t.kLayer)} ${hasMaps(city) ? t.layerOff : t.unavailable}`;
+  if (!ch.map) {
+    const why = ch.mode === 'far' ? t.histFar(ch.near.m.year, ch.gap) : t.histNoneWithin(HIST_MAX_GAP);
+    return head + `${k(t.kLayer)} ${t.unavailable}<br>${k(t.kNote)} ${why}${anyway(ch.near)}`;
   }
+  const m = ch.map;
+  const st = l && l._cc ? l._cc : { state: histIssue[n] ? 'unavailable' : 'loading', detail: histIssue[n] || null, extra: '' };
+  const detail = st.detail ? ` ${st.extra ? st.extra + ' ' : ''}${t[st.detail]}` : '';
+  const gapLine = m.year == null ? t.histUndated
+    : ch.gap === 0 ? t.histWithin(m.year, step)
+    : t.histGap(m.year, step, ch.gap, m.year < stepRange(decade())[0]);
+  const lic = m.licence
+    ? (m.licence.uri ? `<a href="${m.licence.uri}" target="_blank" rel="noopener">${m.licence.statement}</a>` : m.licence.statement)
+    : t.rightsUnknown;
+  const cite = m.source && m.source.citation && m.source.citation !== '[TO BE CONFIRMED]'
+    ? (m.source.url ? `<a href="${m.source.url}" target="_blank" rel="noopener">${m.source.citation}</a>` : m.source.citation)
+    : `<span class="tbc">[TO BE CONFIRMED]</span>`;
+  let extra = '';
+  if (ch.mode === 'undated' && ch.near) extra = anyway(ch.near);
+  if (ch.mode === 'override') extra = `<button type="button" class="hs-ov" data-ov="">${t.histAuto}</button>`;
+  return head + `${k(t.kLayer)} ${tr(m.title)}<br>`
+    + `${k(t.kYear)} ${m.year == null ? t.undatedYear : m.year} · ${k(t.kZoom)} ${m.minZoom}–${m.maxZoom} · ${k(t.kStatus)} ${t[st.state] || st.state}<br>`
+    + `${k(t.kNote)} ${gapLine}${detail}<br>`
+    + `${k(t.kSource)} ${cite}<br>${k(t.kLicence)} ${lic}${extra}`;
+}
+/* Cities without a usable map get the specification of one, whether the overlay is on or off. */
+function histNeedHTML() {
+  const t = T();
+  return histCities().map(c => {
+    const ch = mapChoice(c, decade());
+    if (ch.map && ch.mode !== 'undated') return '';
+    const leads = mapLeads(c) ? ` ${t.mapLeads(mapLeads(c))}` : '';
+    const what = ch.mode === 'far' ? t.needMapFar(cityName(c), ch.near.m.year, stepLabel(decade()), ch.gap)
+      : ch.mode === 'undated' ? t.needMapDated(cityName(c))
+      : t.needMap(cityName(c));
+    return specBlock('maps', what + leads);
+  }).join('');
+}
+function renderHistStatus() {
+  const t = T(), cities = histCities();
+  let html = cities.length
+    ? cities.map((c, i) => histStatusFor(i + 1, c)).join('<hr class="hs-sep">')
+    : `<span class="k">${t.kLayer}</span> ${t.layerOff}`;
+  if (state.compare && state.histOn) html += `<p class="hs-note">${t.histCompareNote}</p>`;
+  $('#histStatus').innerHTML = html;
+  $$('#histStatus .hs-ov').forEach(b => b.onclick = () => { state.histOverride = b.dataset.ov || null; refreshHist(); });
+  $('#histNeed').innerHTML = state.global ? '' : histNeedHTML();
+  bindNeeds($('#histNeed'));
 }
 function setSwipe(on) {
-  state.swipeOn = on && state.histOn;
+  state.swipeOn = on && state.histOn && !!histLayers[1] && !state.compare;
   $('#swipeBtn').classList.toggle('active', state.swipeOn);
   $('#divider').classList.toggle('on', state.swipeOn);
-  if (histLayer) histLayer.setOpacity(state.swipeOn ? 1 : state.histOpa);
+  if (histLayers[1] && histLayers[1]._cc.shown) histLayers[1].setOpacity(targetOpacity(1));
   positionDivider();
   updateClip();
 }
 function positionDivider() { $('#divider').style.left = (state.splitPct * 100) + '%'; }
 function updateClip() {
-  if (!histLayer || !histLayer.getContainer()) return;
-  const c = histLayer.getContainer();
-  if (!state.swipeOn) { c.style.clip = ''; return; }
-  const size = map.getSize();
-  const nw = map.containerPointToLayerPoint([0, 0]);
-  const se = map.containerPointToLayerPoint([size.x, size.y]);
-  const x = nw.x + size.x * state.splitPct;
-  c.style.clip = 'rect(' + [nw.y, x, se.y, nw.x].join('px,') + 'px)';
+  paneLayers(1).forEach(l => {
+    const c = l.getContainer && l.getContainer();
+    if (!c) return;
+    if (!state.swipeOn) { c.style.clip = ''; return; }
+    const size = map.getSize();
+    const nw = map.containerPointToLayerPoint([0, 0]);
+    const se = map.containerPointToLayerPoint([size.x, size.y]);
+    const x = nw.x + size.x * state.splitPct;
+    c.style.clip = 'rect(' + [nw.y, x, se.y, nw.x].join('px,') + 'px)';
+  });
 }
 function bindDividerDrag() {
   const d = $('#divider');
@@ -329,7 +611,8 @@ function applyLayout() {
 }
 function renderSheetContext() {
   const t = T();
-  const title = state.global ? t.mapGlobalTitle : state.compare ? t.mapCompareTitle : cityName(state.city);
+  const title = state.global ? t.mapGlobalTitle
+    : state.compare ? t.mapCompareTitle(cityName(state.city), cityName(ensureCityB())) : cityName(state.city);
   const ok = verifiedCount();
   $('#sheetContext').innerHTML = `<b>${title}</b><i>${ok} / ${SITES.length} ${t.verifiedFlag}</i>`;
 }
@@ -364,6 +647,11 @@ function renderTicks() {
 }
 function renderYear() {
   const y = decade();
+  if (state.playing) {
+    /* restart the CSS fade on every step of playback */
+    const yd = $('.year-display');
+    yd.classList.remove('tick'); void yd.offsetWidth; yd.classList.add('tick');
+  }
   $('#yearBig').textContent = y;
   $('#yearEra').innerHTML = tr(ERAS[y]) + (state.lang === 'en' ? '' : `<span class="sub">${ERAS[y].en}</span>`);
   $$('#yearTicks span').forEach(s => s.classList.toggle('on', +s.dataset.i <= state.di));
@@ -372,6 +660,14 @@ function renderYear() {
     ? T().axisEnd(stepLabel(lastStep))
     : `${stepLabel(DECADES[0])} → ${stepLabel(lastStep)}`;
   $('#axisNow').classList.toggle('is-now', onLastDecade());
+  /* a mark under a step says a dated map of a shown city falls inside it */
+  const cities = histCities();
+  $$('#yearTicks span').forEach(sp => {
+    const y = DECADES[+sp.dataset.i];
+    const yrs = [...new Set(cities.flatMap(c => mapsOf(c).filter(m => m.year != null && gapTo(m.year, y) === 0).map(m => m.year)))].sort();
+    sp.classList.toggle('has-map', yrs.length > 0);
+    if (yrs.length) sp.title = T().histTickTitle(yrs.join(', ')); else sp.removeAttribute('title');
+  });
 }
 function renderFactors() {
   const cities = visibleCities().length ? visibleCities() : Object.keys(CITIES);
@@ -395,6 +691,9 @@ function renderPins() {
   pins.clearLayers();
   if (pins2) pins2.clearLayers();
   network.clearLayers();
+  imgL.clearLayers(); imgL2.clearLayers();
+  const anyImg = !state.global && visibleCities().some(c => imagesOf(c).some(i => Array.isArray(i.coordinates)));
+  if ($('#legendImg')) $('#legendImg').hidden = !anyImg;
 
   if (state.global) {
     NETWORK.forEach(c => {
@@ -405,12 +704,16 @@ function renderPins() {
     return;
   }
 
+  const seen = new Set();
   if (state.compare) {
-    drawSites(activeSites(sitesOf(state.city)), pins);
-    drawSites(activeSites(sitesOf(ensureCityB())), pins2);
-    return;
+    drawSites(activeSites(sitesOf(state.city)), pins, seen);
+    drawSites(activeSites(sitesOf(ensureCityB())), pins2, seen);
+    drawImages(state.city, imgL); drawImages(ensureCityB(), imgL2);
+  } else {
+    drawSites(shownSites(), pins, seen);
+    drawImages(state.city, imgL);
   }
-  drawSites(shownSites(), pins);
+  lastSites = seen;
 }
 
 /* Junction-level modal split. The four points are demonstration slots: no count has been
@@ -423,7 +726,7 @@ function renderInters() {
   $('#intersBtn').querySelector('.sub').textContent =
     T().intersCount(INTERSECTIONS.filter(x => shownCities.includes(x.city)).length);
   if (!state.inters || state.global) return;
-  const draw = (city, layer) => INTERSECTIONS.filter(x => x.city === city).forEach(x => {
+  const draw = (city, layer) => INTERSECTIONS.filter(x => x.city === city && Array.isArray(x.coordinates)).forEach(x => {
     const m = L.marker(x.coordinates, {
       icon: L.divIcon({ className: 'inter-marker', html: '<span></span>', iconSize: [16, 16], iconAnchor: [8, 8] })
     }).addTo(layer);
@@ -483,6 +786,8 @@ function pinSubmission() {
       decade: Number($('#pinDecade').value),
       note: $('#pinNote').value.trim() || '[TO BE CONFIRMED]',
       language: state.lang,
+      submittedBy: $('#pinYou').value.trim() || '[TO BE CONFIRMED]',
+      contact: $('#pinEmail').value.trim() || null,
       placeholder: true,
       source: { citation: '[TO BE CONFIRMED]', verifiedBy: null, verifiedOn: null }
     }
@@ -492,38 +797,60 @@ function pinSubmission() {
 function refreshPinOut() {
   if (pinLL) $('#pinOut').value = pinSubmission();
 }
+/* With an inbox the point can be sent directly. It is still reviewed by a person before
+   anything reaches the site; the copy button stays as the contributor's own record. */
+async function sendPin() {
+  const t = T(), name = $('#pinYou').value.trim();
+  if (!name) { toast(t.inboxNeedName); $('#pinYou').focus(); return; }
+  if (!pinLL) return;
+  try {
+    await sendToInbox([contribution('pin', JSON.parse(pinSubmission()), name, $('#pinEmail').value.trim(), state.city)]);
+    toast(t.pinSent);
+    $('#pinDialog').close();
+  } catch { toast(t.inboxFail); }
+}
 
 function openIntersDrawer(id) {
   const t = T(), x = INTERSECTIONS.find(i => i.id === id);
   if (!x) return;
-  const rows = t.legend.map((mode, i) => `<tr>
+  const tbc = `<span class="tbc">[TO BE CONFIRMED]</span>`;
+  const modeRows = vals => t.legend.map((mode, i) => `<tr>
       <th><i style="background:${SPLIT_C[i]}"></i>${mode}</th>
-      <td class="tbc">[TO BE CONFIRMED]</td></tr>`).join('');
+      <td>${vals && vals.values && vals.values[i] != null ? vals.values[i] + (vals.unit === 'percent' ? '%' : '') : tbc}</td></tr>`).join('');
+  /* counts arrive one per year; each carries its own method and source */
+  const counts = Array.isArray(x.counts) ? x.counts.slice().sort((a, b) => a.year - b.year) : [];
+  const body = counts.length
+    ? counts.map(c => `<h3>${c.year}${c.observedDate ? ' · ' + c.observedDate : ''}${c.observedHours ? ' · ' + c.observedHours : ''}</h3>
+        <table class="inter-table"><tbody>${modeRows(c)}</tbody></table>
+        <p class="caveat">${t.derivation}: ${c.derivation || t.derivationNone}${c.method ? ' · ' + c.method : ''}${c.originalCategories ? '<br>' + c.originalCategories : ''}</p>
+        <div class="source-box"><b>${t.narrCite}</b><p>${c.source && c.source.citation && c.source.citation !== '[TO BE CONFIRMED]' ? c.source.citation : tbc}</p></div>`).join('')
+    : `<table class="inter-table"><tbody>${modeRows(null)}</tbody></table>` + specBlock('counts', t.intersNoData);
   openDrawer(t.intersTitle, `
     <span class="drawer-year">${x.id} · ${cityName(x.city)} · ${stepLabel(decade())}</span>
     <h2>${tr(x.name)}</h2>
-    <div class="caveat"><b class="ph-flag">${x.coordinatesConfirmed ? '' : t.intersLocFlag}</b>
+    <div class="caveat">${x.coordinatesConfirmed ? '' : `<b class="ph-flag">${t.intersLocFlag}</b>`}
       <p>${t.intersLocNote}</p></div>
     <p class="lead">${t.intersLead}</p>
-    <table class="inter-table"><tbody>${rows}</tbody></table>
-    <p class="inter-empty">${t.intersNoData}</p>
-    <h3>${t.intersNeedH}</h3><p>${t.intersNeedBody}</p>
-    <div class="source-box"><b>${t.narrCite}</b><p class="tbc">[TO BE CONFIRMED]</p></div>`);
+    ${body}`);
+  bindNeeds($('#drawerBody'));
 }
 
-function drawSites(list, layer) {
+function drawSites(list, layer, seen) {
   list.forEach(s => {
     const isNow = s.decade === decade();
     const col = fc(s.factor).c;
     const chosen = state.sel === s.id;
+    /* a marker that was not on screen in the previous render fades in */
+    const fresh = !lastSites.has(s.id);
+    if (seen) seen.add(s.id);
     if (chosen) L.circleMarker(s.coordinates, { radius: 15, color: col, weight: 1, fill: false, dashArray: '2,3' }).addTo(layer);
     /* placeholder records are drawn hollow with a dashed edge so an unconfirmed
        point can never be mistaken for a verified one */
     const style = s.placeholder
       ? { radius: isNow ? 8 : 5, color: col, weight: isNow ? 2 : 1.2, dashArray: '2,2',
-          fillColor: '#F1EFE9', fillOpacity: isNow ? .55 : .25 }
+          fillColor: '#F1EFE9', fillOpacity: isNow ? .55 : .25, className: fresh ? 'site-new' : '' }
       : { radius: isNow ? 8 : 5, color: '#F1EFE9', weight: isNow ? 2 : 1,
-          fillColor: col, fillOpacity: isNow ? .95 : .45 };
+          fillColor: col, fillOpacity: isNow ? .95 : .45, className: fresh ? 'site-new' : '' };
     const m = L.circleMarker(s.coordinates, style).addTo(layer);
     m.bindTooltip(`${stepLabel(s.decade)} · ${tr(s.title)}${s.placeholder ? ' · ' + T().placeholderFlag : ''}`,
       { direction: 'top', offset: [0, -8] });
@@ -571,10 +898,73 @@ function rightsBadge(s) {
     : label;
   return `<div class="rights-badge ${img.cleared === true ? 'ok' : 'pending'}"><i></i>${body}</div>`;
 }
+/* ---------- image records ----------
+   A record is complete without its picture (plan §1.1): the card carries caption, place,
+   year, creator, holding archive, reference and rights, and the picture is embedded only
+   when cleared is true. Until then the card links out to the archive. */
+const imagesOf = c => IMAGES.filter(i => i.city === c);
+const imgById = id => IMAGES.find(i => i.id === id);
+const dlRow = (k, v) => v ? `<dt>${k}</dt><dd>${v}</dd>` : '';
+function embedState(img) {
+  const t = T();
+  if (img.cleared === true) return t.imgEmbedYes(img.clearedBy || '[TO BE CONFIRMED]', img.clearedOn);
+  const may = img.mayEmbed || (img.rights && img.rights.mayEmbed);
+  return may === 'no' ? t.imgEmbedNo : t.imgEmbedUnresolved;
+}
+function imageCard(img, compact) {
+  const t = T(), rights = img.rights || {};
+  const link = img.url ? `<a href="${img.url}" target="_blank" rel="noopener">${t.viewSource}</a>` : '';
+  const pic = img.cleared === true && img.file
+    ? `<img src="${img.file}" alt="${tr(img.caption)}" loading="lazy">`
+    : `<div class="rec-slot"><span>${t.offsite}</span>${link}</div>`;
+  const rightsTxt = rights.statement
+    ? (rights.uri ? `<a href="${rights.uri}" target="_blank" rel="noopener">${rights.statement}</a>` : rights.statement)
+    : t.rightsUnknown;
+  const held = [img.archive, img.reference].filter(Boolean).join(' · ');
+  return `<article class="img-card${img.placeholder ? ' is-placeholder' : ''}" data-img="${img.id}">
+    ${pic}
+    <p class="img-cap">${tr(img.caption) || `<span class="tbc">[TO BE CONFIRMED]</span>`}</p>
+    <dl>${dlRow(t.imgMade, img.year)}${dlRow(t.imgShows, img.place)}${dlRow(t.imgCreator, img.creator)}${dlRow(t.imgHeld, held)}
+      ${dlRow(t.imgRights, rightsTxt)}${dlRow(t.imgBasis, rights.basis)}${dlRow(t.imgEmbed, embedState(img))}
+      ${dlRow(t.imgCaveat, tr(img.caveat))}${compact ? '' : dlRow(t.imgNotes, img.notes)}</dl>
+    <p class="rec-cap">${img.attribution || ''} <span class="mono">${img.id}</span></p>
+  </article>`;
+}
+function imageStrip(city) {
+  const t = T(), list = imagesOf(city);
+  const body = list.length ? list.map(i => imageCard(i, true)).join('') : specBlock('images', t.needImages(cityName(city)));
+  return `<div class="img-strip"><h4>${t.imgH}</h4><p class="img-intro">${t.imgIntro}</p>${body}</div>`;
+}
+function openImageDrawer(id) {
+  const img = imgById(id);
+  if (!img) return;
+  openDrawer(T().imgDrawer, `<span class="drawer-year">${cityName(img.city)}${img.year ? ' · ' + img.year : ''}</span>` + imageCard(img, false));
+}
+function drawImages(city, layer) {
+  imagesOf(city).filter(i => Array.isArray(i.coordinates)).forEach(i => {
+    L.marker(i.coordinates, { icon: L.divIcon({ className: 'img-marker', html: '<span></span>', iconSize: [14, 14], iconAnchor: [7, 7] }) })
+      .bindTooltip(`${T().imgLegend} · ${tr(i.caption) || i.id}`, { direction: 'top', offset: [0, -8] })
+      .on('click', () => openImageDrawer(i.id)).addTo(layer);
+  });
+}
+/* Rows a site's own image carries beyond credit and rights, when the record has them. */
+function siteImageRows(img) {
+  const t = T();
+  const held = [img.archive, img.reference].filter(Boolean).join(' · ');
+  const rows = dlRow(t.imgMade, img.year) + dlRow(t.imgCreator, img.creator) + dlRow(t.imgHeld, held)
+    + dlRow(t.imgBasis, img.rightsBasis) + dlRow(t.imgEmbed, embedState(img));
+  return rows ? `<dl class="img-dl">${rows}</dl>` : '';
+}
+
 function renderRecord() {
   const r = $('#record'), t = T();
   const s = state.sel && siteById(state.sel);
-  if (!s) { r.innerHTML = `<div class="empty">${t.empty}</div>`; r.classList.remove('is-placeholder'); return; }
+  if (!s) {
+    /* no site chosen: the city's image records live here, or the specification of one */
+    r.innerHTML = `<div class="empty">${t.empty}</div>` + (state.global ? '' : imageStrip(state.city));
+    r.classList.remove('is-placeholder');
+    return;
+  }
   const f = fc(s.factor);
   r.classList.toggle('is-placeholder', !!s.placeholder);
   const flag = s.placeholder
@@ -587,7 +977,7 @@ function renderRecord() {
     : `<b>${t.recSource}</b> ${src.citation}`
       + (src.reference ? `<br><b>REF</b> ${src.reference}` : '')
       + (src.url ? `<br><a href="${src.url}" target="_blank" rel="noopener">${t.viewSource}</a>` : '');
-  r.innerHTML = `${recordMedia(s)}${rightsBadge(s)}${warn}${flag}
+  r.innerHTML = `${recordMedia(s)}${rightsBadge(s)}${s.image ? siteImageRows(s.image) : ''}${warn}${flag}
     <div class="rec-tag" style="color:${f.c}">${tr(f.label)} · ${stepLabel(s.decade)} · ${cityName(s.city)}</div>
     <h3 class="rec-title">${tr(s.title)}</h3>
     <p class="rec-text">${tr(s.narrative)}</p>
@@ -611,7 +1001,7 @@ function splitRuns(rows) {
 function renderSplit() {
   const t = T(), CW = 300, CH = 96, n = DECADES.length, step = CW / (n - 1);
   const city = state.city;
-  const rows = DECADES.map(d => splitFor(city, d));
+  const rows = DECADES.map(d => { const r = splitFor(city, d); return r && Array.isArray(r.values) && r.values.every(v => v != null) ? r : null; });
   const runs = splitRuns(rows);
   const anyPlaceholder = rows.some(r => r && r.placeholder);
   const HATCH = `<defs><pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
@@ -668,7 +1058,7 @@ function renderSplit() {
 
   if (!runs.length) {
     $('#splitCaption').innerHTML =
-      `<span class="tbc">${t.splitAwaiting}</span> ${t.splitNoneCity(cityName(city))}<br>${t.splitNeed}`;
+      `<span class="tbc">${t.splitAwaiting}</span> ${t.splitNoneCity(cityName(city))}` + specBlock('counts', t.splitNeed);
   } else if (anyPlaceholder) {
     $('#splitCaption').innerHTML = `<span class="tbc">${t.placeholderFlag}</span> ${t.splitPlaceholder}<br>`
       + `<b>${t.derivation}</b> ${(cur && cur.derivation) || t.derivationNone}`;
@@ -685,7 +1075,7 @@ function renderMapCard() {
     $('#mapTitle').textContent = t.mapGlobalTitle;
     $('#mapSub').textContent = t.mapGlobalSub;
   } else if (state.compare) {
-    $('#mapTitle').textContent = t.mapCompareTitle;
+    $('#mapTitle').textContent = t.mapCompareTitle(cityName(state.city), cityName(ensureCityB()));
     $('#mapSub').textContent = t.mapCompareSub;
   } else {
     $('#mapTitle').textContent = cityName(state.city);
@@ -702,6 +1092,9 @@ function render() {
     if (!s || !shownSites().includes(s)) state.sel = null;
   }
   renderYear(); renderFactors(); renderPins(); renderInters(); renderRecord(); renderSplit(); renderMapCard(); renderSheetContext();
+  refreshHist();
+  /* the docked chapter depends on city, comparison and language, not on the slider */
+  if (state.narrDock && !mq.matches && narrKey !== narrSig()) renderNarr($('#narrBody'));
   refreshPhaseActive();
   $$('.city-chip').forEach(b => {
     const c = b.dataset.city;
@@ -714,7 +1107,8 @@ function render() {
     $('#splitR').textContent = cityName(ensureCityB());
   }
   $('#globalBtn').classList.toggle('active', state.global);
-  $('#histBtn').disabled = state.compare || state.global || !histOf(state.city);
+  $('#histBtn').disabled = state.global || !histCities().some(hasMaps);
+  bindNeeds($('#panel'));
   syncUrl();
 }
 
@@ -744,6 +1138,7 @@ function selectCity(id, { fly = true } = {}) {
   if (fly) goTo(map, CITIES[id].center, CITIES[id].zoom, { duration: 1.1 });
   /* re-evaluate the overlay against the new city: it rewrites the status line, which
      otherwise keeps describing whichever city was selected before */
+  state.histOverride = null;
   setHist(state.histOn);
   if (state.histOn) setSwipe(state.swipeOn);
   render();
@@ -751,7 +1146,6 @@ function selectCity(id, { fly = true } = {}) {
 function setCompare(on) {
   state.compare = on; state.global = false; state.sel = null;
   if (on) {
-    setHist(false);
     ensureCityB();
     const z = Math.min(CITIES[state.city].zoom, CITIES[state.cityB].zoom);
     map.setView(CITIES[state.city].center, z, { animate: false });
@@ -847,7 +1241,8 @@ function moveTour(dir) {
   showTourStep();
 }
 function showTourStep() {
-  const t = T(), step = TOUR[tourAt], copy = t.tour[step.key];
+  const t = T(), step = TOUR[tourAt];
+  const copy = t.tour[step.key === 'add' && inboxOn() && t.tour.addInbox ? 'addInbox' : step.key];
   if (mq.matches && step.sheet) setSheet(step.sheet, { animate: false });
   $('#tourCount').textContent = t.tourOf(tourAt + 1, TOUR.length);
   $('#tourTitle').textContent = copy.t;
@@ -899,16 +1294,115 @@ function placeTour(step) {
   $('#tourNext').focus({ preventScroll: true });
 }
 
+/* ---------- empty states as specifications ----------
+   An empty slot says what is missing, what the template asks for, and where to send it,
+   so the interface in its data-gathering phase is its own instruction sheet. */
+function specBlock(track, what) {
+  const t = T(), row = t.contribTracks.find(x => x[0] === track);
+  if (!row) return '';
+  const [, , , needs, file, guide] = row;
+  return `<div class="need">
+    <p class="need-what">${what}</p>
+    <b class="need-h">${t.needH}</b>
+    <ul>${needs.map(n => `<li>${n}</li>`).join('')}</ul>
+    <div class="need-actions">
+      <button type="button" class="need-cta" data-track="${track}">${t.needCta}</button>
+      <a href="${DOCS}${file}" download>${t.needTemplate}</a>
+      <a href="${DOCS}${guide}" target="_blank" rel="noopener">${t.needGuide}</a>
+    </div></div>`;
+}
+function bindNeeds(root) {
+  $$('.need-cta', root || document).forEach(b => b.onclick = () => openContribute(b.dataset.track));
+}
+function openContribute(track) {
+  contribTrack = track || null; contribRows = null;
+  renderContribute();
+  closeDrawer();
+  if (!$('#contribDialog').open) $('#contribDialog').showModal();
+}
+
 /* ---------- guided contribution ----------
-   Three tracks, each ending in the same place: a template to fill and an address to
-   send it to. Nothing uploads from here, and the flow says so at the step where a
-   contributor would otherwise expect an upload button. */
+   Four tracks, each ending in the same place: a template to fill and a way to send it.
+   With an inbox configured (config.js) the filled template can be dropped here; it is
+   checked against the template's columns and posted to a private table that only the
+   maintainer can read. Without one, the flow says to email it. Nothing writes to the site. */
 const DOCS = './docs/data-submission/';
-let contribTrack = null;
+const INBOX_KIND = { counts: 'modal_split', images: 'image', story: 'story', maps: 'map' };
+const TEMPLATE_HEADERS = {
+  counts: 'city_name,city_slug,point_id,point_name,lat,lon,location_basis,year,mode_bicycle,mode_walking,mode_transit,mode_car,unit,total_observed,original_categories,mapping_notes,derivation,method,observed_date,observed_hours,source_citation,source_archive,source_reference,source_url,verified_by,verified_on,notes',
+  images: 'city_slug,image_id,site_id,caption_en,shows_place,year,date_exact,lat,lon,creator,creator_death_year,archive,reference,source_url,rights_statement,rights_uri,rights_basis,permission_contact,permission_date,may_embed,attribution_text,cleared_by,cleared_on,caveat,notes',
+  story: 'period_start,city_slug,title_en,body_en,factor,linked_site_ids,linked_image_ids,sources,source_archive,source_reference,contested_note,author,author_affiliation,written_on',
+  maps: 'city_slug,map_id,title,year,year_basis,publisher,scale,series_or_sheet,archive,reference,source_url,georeferenced,georef_method,georef_file_url,tile_url,projection,rights_statement,rights_uri,rights_basis,may_publish,attribution_text,cleared_by,cleared_on,notes'
+};
+const REQUIRED = {
+  counts: ['city_slug', 'point_id', 'year'], images: ['city_slug', 'image_id'],
+  story: ['city_slug', 'period_start', 'title_en', 'body_en'], maps: ['city_slug', 'map_id']
+};
+let contribTrack = null, contribRows = null;
+
+const inboxOn = () => !!(window.CC_CONFIG && CC_CONFIG.inboxUrl && CC_CONFIG.inboxAnonKey);
+/* One insert per submission. return=minimal is required: the anon role may insert but
+   cannot read the table back, so no representation could be returned. */
+async function sendToInbox(rows) {
+  /* a legacy anon key is a JWT and doubles as the bearer token; a publishable key
+     (sb_publishable_…) is not, and PostgREST would reject it as one */
+  const key = CC_CONFIG.inboxAnonKey;
+  const headers = { apikey: key, 'Content-Type': 'application/json', Prefer: 'return=minimal' };
+  if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`;
+  const res = await fetch(`${CC_CONFIG.inboxUrl.replace(/\/$/, '')}/rest/v1/contribution`, {
+    method: 'POST', headers, body: JSON.stringify(rows)
+  });
+  if (!res.ok) throw new Error(`inbox HTTP ${res.status}`);
+}
+const contribution = (kind, payload, name, email, city) => ({
+  kind, city_slug: city || null, submitted_name: name, submitted_email: email || null,
+  client_lang: state.lang, tool: 'cc-tool2', payload
+});
+
+/* RFC 4180: quoted fields, doubled quotes, line breaks inside quotes, optional BOM. */
+function parseCSV(text) {
+  const rows = [], src = text.replace(/^﻿/, '');
+  let row = [], cell = '', q = false;
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (q) {
+      if (ch === '"') { if (src[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === ',') { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && src[i + 1] === '\n') i++;
+      row.push(cell); rows.push(row); row = []; cell = '';
+    } else cell += ch;
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ''));
+}
+/* The header must carry exactly the template's columns, in any order. Empty cells become
+   null, so a gap stays a gap (docs/data-submission/README.md, step 3). */
+function checkTemplate(track, text) {
+  const t = T(), rows = parseCSV(text);
+  if (!rows.length) return { issues: [t.contribNoRows], rows: [] };
+  const header = rows[0].map(h => h.trim()), want = TEMPLATE_HEADERS[track].split(',');
+  const missing = want.filter(h => !header.includes(h)), extra = header.filter(h => !want.includes(h));
+  if (missing.length || extra.length) return { issues: [t.contribBadHeader(missing.join(', '), extra.join(', '))], rows: [] };
+  const body = rows.slice(1);
+  if (!body.length) return { issues: [t.contribNoRows], rows: [] };
+  const issues = [], out = [];
+  body.forEach((r, i) => {
+    const o = {};
+    header.forEach((h, j) => { const v = (r[j] || '').trim(); o[h] = v === '' ? null : v; });
+    if (!CITIES[o.city_slug]) issues.push(t.contribRowIssue(i + 2, t.contribBadCity));
+    REQUIRED[track].filter(f => o[f] == null).forEach(f => issues.push(t.contribRowIssue(i + 2, t.contribNeedField(f))));
+    out.push(o);
+  });
+  return { issues, rows: out };
+}
 
 function renderContribute() {
   const t = T();
   const step = n => `<span class="contrib-step">${t.contribStep(n)}</span>`;
+  $('#contribNote').textContent = inboxOn() ? t.contribNoteInbox : t.contribNote;
 
   if (!contribTrack) {
     $('#contribOptions').innerHTML = step(1) + `<h3>${t.contribPick}</h3>` +
@@ -924,6 +1418,17 @@ function renderContribute() {
   }
 
   const [, label, , needs, file, guide] = t.contribTracks.find(x => x[0] === contribTrack);
+  const send = inboxOn()
+    ? `<p class="contrib-p">${t.contribInboxLead}</p>
+       <div class="contrib-form">
+         <label class="pin-field"><span>${t.contribName}</span><input type="text" id="contribName" autocomplete="name" /></label>
+         <label class="pin-field"><span>${t.contribEmail}</span><input type="email" id="contribEmail" autocomplete="email" /></label>
+         <label class="contrib-file"><span>${t.contribFile}</span><input type="file" id="contribFile" accept=".csv,text/csv" /></label>
+         <div class="contrib-check" id="contribCheck"></div>
+         <button type="button" class="contrib-send" id="contribSendBtn" disabled>${t.contribSendBtn(0)}</button>
+       </div>
+       <p class="contrib-p contrib-or">${t.contribOr}</p>`
+    : `<p class="contrib-p">${t.contribSend}</p>`;
   $('#contribOptions').innerHTML =
     `<button type="button" class="contrib-back" id="contribBack">${t.contribBack}</button>` +
     step(2) + `<h3>${label}</h3>` +
@@ -934,9 +1439,41 @@ function renderContribute() {
        <a class="btn contrib-dl" href="${DOCS}${file}" download>${t.contribDownload}</a>
        <a class="contrib-guide" href="${DOCS}${guide}" target="_blank" rel="noopener">${t.contribGuide}</a>
      </div>` +
-    step(3) + `<h3>${t.contribSendH}</h3><p class="contrib-p">${t.contribSend}</p>` +
+    step(3) + `<h3>${t.contribSendH}</h3>` + send +
     step(4) + `<h3>${t.contribNextH}</h3><p class="contrib-p">${t.contribNext}</p>`;
-  $('#contribBack').onclick = () => { contribTrack = null; renderContribute(); };
+  $('#contribBack').onclick = () => { contribTrack = null; contribRows = null; renderContribute(); };
+  if (inboxOn()) bindContribForm();
+}
+function bindContribForm() {
+  const t = T(), check = $('#contribCheck'), btn = $('#contribSendBtn');
+  contribRows = null;
+  $('#contribFile').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    f.text().then(text => {
+      const { issues, rows } = checkTemplate(contribTrack, text);
+      contribRows = issues.length ? null : rows;
+      check.innerHTML = issues.length
+        ? `<ul class="bad">${issues.slice(0, 12).map(x => `<li>${x}</li>`).join('')}${issues.length > 12 ? '<li>…</li>' : ''}</ul>`
+        : `<p class="ok">${t.contribRows(rows.length)}</p>`;
+      btn.disabled = !contribRows;
+      btn.textContent = t.contribSendBtn(contribRows ? contribRows.length : 0);
+    });
+  });
+  btn.onclick = async () => {
+    const name = $('#contribName').value.trim(), email = $('#contribEmail').value.trim();
+    if (!name || !email) { toast(t.contribNeedName); $('#contribName').focus(); return; }
+    if (!contribRows) return;
+    btn.disabled = true;
+    try {
+      await sendToInbox(contribRows.map(r => contribution(INBOX_KIND[contribTrack], r, name, email, r.city_slug)));
+      check.innerHTML = `<p class="ok">${t.contribSent(contribRows.length)}</p>`;
+      toast(t.contribSent(contribRows.length));
+      contribRows = null; $('#contribFile').value = '';
+    } catch (err) {
+      toast(t.contribFail); btn.disabled = false;
+    }
+  };
 }
 
 /* ---------- record review ----------
@@ -962,6 +1499,8 @@ function openReview() {
   $('#reviewName').placeholder = t.reviewNamePh;
   $('#reviewOutLbl').textContent = t.reviewOutLbl;
   $('#reviewCopy').querySelector('.t').textContent = t.reviewCopy;
+  $('#reviewSend').hidden = !inboxOn();
+  $('#reviewSend').querySelector('.t').textContent = t.reviewSend;
   renderReviewQueue();
   $('#reviewDialog').showModal();
 }
@@ -1036,6 +1575,18 @@ function refreshReviewOut() {
   }, null, 2);
 }
 
+/* Decisions can go to the inbox as well as to the clipboard. They stay a proposal either
+   way: the maintainer applies them by hand and git records the change. */
+async function sendReview() {
+  const t = T(), name = $('#reviewName').value.trim();
+  if (!name) { toast(t.reviewNeedName); $('#reviewName').focus(); return; }
+  refreshReviewOut();
+  try {
+    await sendToInbox([contribution('review', JSON.parse($('#reviewOut').value), name, null, null)]);
+    toast(t.reviewSent);
+  } catch { toast(t.inboxFail); }
+}
+
 /* ---------- drawer ---------- */
 function openDrawer(eyebrow, html) {
   $('#drawerEyebrow').textContent = eyebrow;
@@ -1050,20 +1601,72 @@ function closeDrawer() {
   $('#drawer').setAttribute('aria-hidden', 'true');
   $('.drawer-backdrop').classList.remove('open');
 }
-/* The narrative reads as a column beside the map, the way the CMU Telegraph project
-   sets it out, rather than as a drawer that covers the thing it describes. A phone has
-   no room for two columns, so there it stays an overlay. */
+/* ---------- narrative ----------
+   The narrative reads as a column beside the map, the way the CMU Telegraph project sets it
+   out, rather than as a drawer that covers the thing it describes. A phone has no room for
+   two columns, so there it stays an overlay.
+
+   Two views share the column. The shared frame is the project's common argument, read as
+   nine periods. A city chapter is that city's paragraphs arranged under the same five
+   factors, so two chapters can be read side by side factor for factor; where a city has
+   no paragraph for a factor the column says what is needed instead of filling the gap. */
+let narrKey = '';
+const narrSig = () => [state.lang, state.narrShared, state.global, state.compare, state.city, state.cityB].join('|');
+
 function narrativeHTML() {
   const t = T();
-  return `
+  const shared = state.global || state.narrShared;
+  const switcher = state.global ? '' : shared
+    ? `<button type="button" class="narr-switch" data-narr="city">${t.narrToCity(cityName(state.city))}</button>`
+    : `<button type="button" class="narr-switch" data-narr="shared">${t.narrToShared}</button>`;
+  if (shared) return `
+    <span class="drawer-year">${t.narrShared}</span>
     <h2>${t.narrTitle}</h2>
-    <p class="lead">${t.narrIntro}</p>
+    <p class="lead">${t.narrIntro}</p>${switcher}
     <div class="phases">${STORIES.map(phaseCard).join('')}</div>
     <h3>${t.storyQ1}</h3><p>${t.storyA1}</p>
     <h3>${t.storyQ2}</h3><p>${t.storyA2}</p>
     <div class="source-box"><b>${t.storyBox}</b><p>${t.storyBoxBody}</p></div>
     <p class="model-note">${t.narrModel}
       <a href="https://telegraph.library.cmu.edu/" target="_blank" rel="noopener">telegraph.library.cmu.edu</a></p>`;
+  const cities = state.compare ? [state.city, ensureCityB()] : [state.city];
+  return `
+    <span class="drawer-year">${cities.map(cityName).join(' × ')}</span>
+    <h2>${cities.length > 1 ? t.narrCompareH : t.narrChapter(cityName(state.city))}</h2>
+    <p class="lead">${cities.length > 1 ? t.narrCompareIntro : t.narrChapterIntro}</p>${switcher}
+    ${FACTORS.map(f => `<section class="chap" style="--fc:${f.c}">
+      <header><span class="chap-n">${f.n}</span><h3>${tr(f.label)}</h3><span class="chap-sub">${tr(f.sub)}</span></header>
+      ${cities.map(c => chapterParas(c, f, cities.length > 1)).join('')}
+    </section>`).join('')}
+    <div class="source-box"><b>${t.storyBox}</b><p>${t.storyBoxBody}</p></div>`;
+}
+function chapterParas(c, f, labelled) {
+  const t = T();
+  const paras = (NARR[c] || []).filter(p => p.factor === f.id).sort((a, b) => a.period - b.period);
+  const label = labelled ? `<h4 class="chap-city">${cityName(c)}</h4>` : '';
+  if (!paras.length) return label + specBlock('story', t.needStory(tr(f.label), cityName(c)));
+  return label + paras.map(paraCard).join('');
+}
+/* One city paragraph. Three honest states: Lorem Ipsum placeholder, submitted but unverified,
+   and verified. Linked image records appear as cards, never as bare pictures. */
+function paraCard(p) {
+  const t = T(), st = STORIES.find(x => x.from === p.period);
+  const span = st ? (st.from === st.to ? stepLabel(st.from) : `${stepLabel(st.from)}–${stepLabel(st.to)}`) : stepLabel(p.period);
+  const text = p.placeholder
+    ? `<div class="draft"><b class="ph-flag">${t.narrDraft}</b><p class="draft-note">${t.narrDraftCity}</p>
+         <h5 class="lorem-t">${tr(p.title)}</h5><p class="lorem">${tr(p.body)}</p></div>`
+    : `${p.verified ? '' : `<div class="ph-flag"><b>${t.placeholderFlag}</b>${t.narrUnverified}</div>`}
+       <h5>${tr(p.title)}</h5><p class="phase-body">${tr(p.body)}</p>`;
+  const by = p.author ? `${t.narrBy} ${p.author}` : t.narrUnsigned;
+  const cite = p.source && p.source.citation && p.source.citation !== '[TO BE CONFIRMED]'
+    ? p.source.citation : `<span class="tbc">[TO BE CONFIRMED]</span>`;
+  const imgs = (p.linkedImages || []).map(imgById).filter(Boolean).map(i => imageCard(i, true)).join('');
+  return `<article class="phase para" data-decade="${p.period}">
+    <header><span class="phase-span">${span}</span><span class="para-by">${by}</span></header>
+    ${text}${imgs}
+    <p class="phase-cite"><b>${t.narrCite}</b> ${cite}</p>
+    <button type="button" class="phase-go"></button>
+  </article>`;
 }
 
 function bindPhases(root) {
@@ -1074,7 +1677,17 @@ function bindPhases(root) {
     if (mq.matches && root.id === 'drawerBody') closeDrawer();
     else card.scrollIntoView({ block: 'nearest' });
   });
+  $$('.narr-switch', root).forEach(b => b.onclick = () => {
+    state.narrShared = b.dataset.narr === 'shared';
+    renderNarr(root);
+  });
   refreshPhaseActive();
+}
+function renderNarr(root) {
+  root.innerHTML = narrativeHTML();
+  bindPhases(root);
+  bindNeeds(root);
+  narrKey = narrSig();
 }
 
 const NARR_KEY = 'cc.narr.v1';
@@ -1086,8 +1699,7 @@ function setNarrDock(on) {
   $('#narr').hidden = !state.narrDock;
   if (state.narrDock && !mq.matches) {
     $('#narrEyebrow').textContent = T().drawerStory;
-    $('#narrBody').innerHTML = narrativeHTML();
-    bindPhases($('#narrBody'));
+    renderNarr($('#narrBody'));
   }
   try { localStorage.setItem(NARR_KEY, state.narrDock ? '1' : '0'); } catch { /* private mode */ }
   const resize = () => {
@@ -1101,13 +1713,12 @@ function setNarrDock(on) {
 
 function openStoryDrawer() {
   if (!mq.matches) { setNarrDock(true); return; }
-  openDrawer(T().drawerStory, `<span class="drawer-year">${T().narrTitle}</span>` + narrativeHTML());
-  bindPhases($('#drawerBody'));
+  openDrawer(T().drawerStory, '');
+  renderNarr($('#drawerBody'));
 }
 
-/* One narrative period. The body text is prototype copy; the draft block below it is
-   Lorem Ipsum, marking where the research team's narrative goes without pretending to
-   be that narrative. No image is embedded until rights are cleared (plan §1.1). */
+/* One period of the shared frame. The body text is prototype copy; the city paragraphs,
+   including the Lorem Ipsum placeholders, live in the chapters. */
 function phaseCard(st, i) {
   const t = T(), f = fc(st.factor);
   const span = st.from === st.to ? stepLabel(st.from) : `${stepLabel(st.from)}–${stepLabel(st.to)}`;
@@ -1119,12 +1730,6 @@ function phaseCard(st, i) {
     </header>
     <h4>${tr(st.title)}</h4>
     <p class="phase-body">${tr(st.body)}</p>
-    <div class="draft">
-      <b class="ph-flag">${t.narrDraft}</b>
-      <p class="draft-note">${t.narrDraftNote}</p>
-      <p class="lorem">${t.narrLorem}</p>
-    </div>
-    <div class="img-slot"><span>${t.narrImage}</span><small>${t.narrImageNote}</small></div>
     <p class="phase-cite"><b>${t.narrCite}</b> <span class="tbc">[TO BE CONFIRMED]</span></p>
     <button type="button" class="phase-go"></button>
   </article>`;
@@ -1193,6 +1798,16 @@ function openStatusDrawer() {
     <p>${t.placeholderBody}</p>
     <h3>${t.statusSplitH}</h3><p>${t.splitPlaceholder}</p>
     <h3>${t.statusOverlayH}</h3><p>${t.statusOverlayBody}</p>
+    <h3>${t.statusMapsH}</h3>
+    <table class="source-table">
+      <thead><tr><th>${t.thCity}</th><th>${t.thMaps}</th></tr></thead>
+      <tbody>${Object.keys(CITIES).map(c => {
+        const yrs = [...new Set(mapsOf(c).filter(m => m.year != null).map(m => m.year))].sort();
+        const ud = undatedMap(c);
+        const cell = (yrs.length ? yrs.join(' ') : '') + (ud ? (yrs.length ? ' · ' : '') + t.undatedYear : '')
+          || `<span class="tbc">${t.splitAwaiting}</span>`;
+        return `<tr><td>${cityName(c)}</td><td class="mono wrap">${cell}</td></tr>`; }).join('')}</tbody>
+    </table>
     <div class="source-box"><b>${t.statusNeededH}</b><p>${t.statusNeededBody}</p></div>`);
 }
 function citationFor(id) {
@@ -1258,7 +1873,9 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
-/* ---------- timeline playback ---------- */
+/* ---------- timeline playback ----------
+   One step every PLAY_MS: long enough for a sheet to arrive and dissolve into the next. */
+const PLAY_MS = 1500;
 function togglePlay() {
   if (state.playing) {
     state.playing = false;
@@ -1272,7 +1889,7 @@ function togglePlay() {
   playTimer = setInterval(() => {
     if (state.di >= DECADES.length - 1) { togglePlay(); return; }
     setDecade(state.di + 1);
-  }, 1100);
+  }, PLAY_MS);
 }
 
 /* ---------- language ---------- */
@@ -1292,10 +1909,9 @@ function applyLang() {
   $('#tourBtn').setAttribute('aria-label', t.tourStart);
   $('#tourBtn').setAttribute('title', t.tourStart);
   if (tourOpen()) showTourStep();
-  if (state.narrDock) {
+  if (state.narrDock && !mq.matches) {
     $('#narrEyebrow').textContent = t.drawerStory;
-    $('#narrBody').innerHTML = narrativeHTML();
-    bindPhases($('#narrBody'));
+    renderNarr($('#narrBody'));
   }
   $('#contribBtn').querySelector('span').textContent = t.contribute;
 
@@ -1345,7 +1961,8 @@ function applyLang() {
   }
   $('#fitBtn').setAttribute('aria-label', t.fitLabel);
   $('#mapLegend').innerHTML = ['dot-ok', 'dot-ph', 'dot-now', 'dot-net']
-    .map((cls, i) => `<span><i class="${cls}"></i>${t.mapLegend[i]}</span>`).join('');
+    .map((cls, i) => `<span><i class="${cls}"></i>${t.mapLegend[i]}</span>`).join('')
+    + `<span id="legendImg" hidden><i class="dot-img"></i>${t.imgLegend}</span>`;
 
   $('#searchInput').placeholder = t.searchPlaceholder;
   $('#contribEyebrow').textContent = t.contribEyebrow;
@@ -1365,14 +1982,16 @@ function applyLang() {
   $('#pinDecadeLbl').textContent = t.pinDecade;
   $('#pinNoteLbl').textContent = t.pinNote;
   $('#pinCopy').querySelector('.t').textContent = t.pinCopy;
-  $('#pinStore').textContent = t.pinStore;
+  $('#pinStore').textContent = inboxOn() ? t.pinStoreInbox : t.pinStore;
+  $('#pinYouLbl').textContent = t.pinYou;
+  $('#pinEmailLbl').textContent = t.pinEmail;
+  $('#pinSend').hidden = !inboxOn();
+  $('#pinSend').querySelector('.t').textContent = t.pinSend;
   $('#pinOutLbl').textContent = t.pinOutLbl;
   refreshPinOut();
   $('#pinDecade').innerHTML = DECADES.map(y => `<option value="${y}">${stepLabel(y)}</option>`).join('');
   $('#pinDecade').value = String(decade());
 
-  if (state.histOn && histLayer) histStatus(t.ready);
-  else $('#histStatus').innerHTML = `<span class="k">${t.kLayer}</span> ${t.layerOff}`;
   render();
 }
 
@@ -1386,7 +2005,7 @@ function bindEvents() {
   $('#histOpa').addEventListener('input', e => {
     state.histOpa = +e.target.value / 100;
     $('#histOpaVal').textContent = e.target.value + '%';
-    if (histLayer && !state.swipeOn) histLayer.setOpacity(state.histOpa);
+    [1, 2].forEach(n => { const l = histLayers[n]; if (l && l._cc.shown && !(n === 1 && state.swipeOn)) l.setOpacity(state.histOpa); });
   });
   $$('.city-chip').forEach(b => b.onclick = () => selectCity(b.dataset.city));
   $('#swapBtn').onclick = () => {
@@ -1451,7 +2070,9 @@ function bindEvents() {
   $('#pinGeo').onclick = useMyLocation;
   $('#pinClose').onclick = () => $('#pinDialog').close();
   $('#pinDialog').addEventListener('click', e => { if (e.target.id === 'pinDialog') $('#pinDialog').close(); });
-  ['#pinName', '#pinDecade', '#pinNote'].forEach(sel => $(sel).addEventListener('input', refreshPinOut));
+  ['#pinName', '#pinDecade', '#pinNote', '#pinYou', '#pinEmail'].forEach(sel => $(sel).addEventListener('input', refreshPinOut));
+  $('#pinSend').onclick = sendPin;
+  $('#reviewSend').onclick = sendReview;
   $('#pinCopy').onclick = async () => {
     refreshPinOut();
     try { await navigator.clipboard.writeText($('#pinOut').value); toast(T().pinCopied); }
